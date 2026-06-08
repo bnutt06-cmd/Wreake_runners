@@ -1,11 +1,14 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/admin/page": "app/admin/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
   "/login/page": "app/login/page.js",
   "/members/page": "app/members/page.js",
   "/news/page": "app/news/page.js",
   "/page": "app/page.js",
   "/races/page": "app/races/page.js",
-  "/reset-password/page": "app/reset-password/page.js"
+  "/reset-password/page": "app/reset-password/page.js",
+  "/dashboard/races/page": "app/dashboard/races/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/standards/page": "app/dashboard/standards/page.js",
+  "/dashboard/events/page": "app/dashboard/events/page.js"
 }
