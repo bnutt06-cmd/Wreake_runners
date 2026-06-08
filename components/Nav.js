@@ -8,9 +8,9 @@ import { styles } from "@/lib/styles";
 export default function Nav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { loggedIn, logout } = useStore();
+  const { loggedIn, isAdmin, logout } = useStore();
 
-  const links = [
+  const publicLinks = [
     ["/", "Home"],
     ["/news", "News"],
     ["/races", "Races & Events"],
@@ -23,7 +23,7 @@ export default function Nav() {
         <span style={styles.logoText}>WREAKE RUNNERS</span>
       </Link>
       <nav style={styles.navLinks}>
-        {links.map(([href, label]) => (
+        {publicLinks.map(([href, label]) => (
           <Link
             key={href}
             href={href}
@@ -34,21 +34,25 @@ export default function Nav() {
         ))}
         {loggedIn && (
           <Link
-            href="/members"
-            style={{ ...styles.navBtn, ...(pathname === "/members" ? styles.navBtnActive : {}) }}
+            href="/dashboard"
+            style={{ ...styles.navBtn, ...(pathname === "/dashboard" ? styles.navBtnActive : {}) }}
           >
-            Members
+            Dashboard
+          </Link>
+        )}
+        {loggedIn && isAdmin && (
+          <Link
+            href="/admin"
+            style={{ ...styles.navBtn, ...(pathname === "/admin" ? styles.navBtnActive : {}) }}
+          >
+            Admin
           </Link>
         )}
         <button
           style={styles.cta}
           onClick={() => {
-            if (loggedIn) {
-              logout();
-              router.push("/");
-            } else {
-              router.push("/login");
-            }
+            if (loggedIn) { logout(); router.push("/"); }
+            else { router.push("/login"); }
           }}
         >
           {loggedIn ? "Log out" : "Member Login"}

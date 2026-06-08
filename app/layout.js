@@ -5,8 +5,7 @@ import Footer from "@/components/Footer";
 
 export const metadata = {
   title: "Wreake Runners — Running Club, Syston, Leicester",
-  description:
-    "A friendly, inclusive running club based in Syston, Leicester. Running better together since 1981.",
+  description: "A friendly, inclusive running club based in Syston, Leicester. Running better together since 1981.",
 };
 
 export default function RootLayout({ children }) {

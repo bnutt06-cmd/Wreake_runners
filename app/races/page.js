@@ -47,7 +47,7 @@ function RaceRow({ r }) {
               style={styles.cta}
               onClick={async () => {
                 if (name.trim()) {
-                  const ok = await addSignup(r.id, name.trim());
+                  const { ok } = await addSignup(r.id, name.trim());
                   if (ok) setDone(true);
                 }
               }}
