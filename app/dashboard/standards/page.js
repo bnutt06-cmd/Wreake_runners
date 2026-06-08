@@ -1,262 +1,244 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useStore } from "@/lib/store";
 import { COLORS } from "@/lib/data";
 import {
-  STANDARDS_TIMES, STANDARDS_DISTANCES, STANDARDS_TIERS,
-  parseTimeToSeconds, secondsToTime,
-} from "@/lib/mockData";
+  StandardsBanner, TierGrid, TargetMatrix, SubmissionForm,
+} from "@/components/standards/StandardsWidgets";
+import { assignCategory, evaluateScheme } from "@/lib/standards/engine";
+import { STANDARDS_LOOKUP } from "@/lib/standards/lookup";
 
-const TIER_COLORS = {
-  Bronze: "#A87034",
-  Silver: "#9CA3AF",
-  Gold: "#D4AF37",
-  Platinum: "#5FD0E6",
-};
+const CURRENT_SEASON = new Date().getFullYear();
+
+// Mock profile — replace with profile.gender / profile.date_of_birth
+// once those columns exist on public.profiles.
+const MOCK_PROFILE = { gender: "Male", dob: "1990-05-10" };
 
 export default function StandardsPage() {
-  const [prs, setPrs] = useState({}); // { "5k": "21:42", ... }
+  const { profile } = useStore();
+  const [scheme, setScheme] = useState("wreake");
+  const [logs, setLogs] = useState([]);
 
-  function update(dist, value) {
-    setPrs((p) => ({ ...p, [dist]: value }));
+  const memberGender = profile?.gender || MOCK_PROFILE.gender;
+  const memberDob = profile?.date_of_birth || MOCK_PROFILE.dob;
+
+  const category = useMemo(
+    () => assignCategory(memberGender, memberDob, CURRENT_SEASON),
+    [memberGender, memberDob]
+  );
+
+  function handleSubmit(submission) {
+    setLogs((prev) => [...prev, { ...submission, id: `log-${Date.now()}` }]);
   }
+
+  const wreakeResult = useMemo(
+    () => evaluateScheme({ logs, scheme: "wreake", lookup: STANDARDS_LOOKUP, category }),
+    [logs, category]
+  );
+  const lrrlResult = useMemo(
+    () => evaluateScheme({ logs, scheme: "lrrl", lookup: STANDARDS_LOOKUP, category }),
+    [logs, category]
+  );
+
+  const active = scheme === "wreake" ? wreakeResult : lrrlResult;
 
   return (
     <div>
-      <div style={{ marginBottom: 32 }}>
-        <h3
-          style={{
-            fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 700, margin: "0 0 8px",
-          }}
-        >
-          Club Standards
-        </h3>
-        <p style={{ opacity: 0.7, margin: 0, fontSize: 15, maxWidth: 640 }}>
-          Enter your current personal bests and we'll show you which tier you've reached
-          and how close you are to the next one.
-        </p>
-      </div>
+      <StandardsBanner seasonYear={CURRENT_SEASON} />
 
-      <div style={{ display: "grid", gap: 20 }}>
-        {STANDARDS_DISTANCES.map((dist) => (
-          <DistanceRow
-            key={dist}
-            distance={dist}
-            value={prs[dist] || ""}
-            onChange={(v) => update(dist, v)}
-          />
-        ))}
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          flexWrap: "wrap",
+          background: COLORS.mist,
+          padding: "14px 18px",
+          borderRadius: 12,
+          marginBottom: 24,
+          fontSize: 13,
+        }}
+      >
+        <span><strong>Category:</strong> {category || "set DOB + gender in profile"}</span>
+        <span><strong>Season:</strong> {CURRENT_SEASON}</span>
+        <span><strong>Logged:</strong> {logs.length}</span>
+        <span><strong>Distinct distances (this scheme):</strong> {active.distinctDistances}</span>
       </div>
 
       <div
         style={{
-          marginTop: 32,
-          padding: 16,
-          background: COLORS.mist,
-          borderRadius: 12,
-          fontSize: 13,
-          opacity: 0.8,
+          display: "flex",
+          gap: 8,
+          borderBottom: `2px solid ${COLORS.mist}`,
+          marginBottom: 24,
         }}
       >
-        <strong>Time format:</strong> use mm:ss for 5k/10k (e.g. <code>21:42</code>) or
-        hh:mm:ss for half/full marathons (e.g. <code>1:35:58</code>). Times will save to
-        your profile once the database wiring is complete.
+        <SchemeTab label="Wreake Club Status" active={scheme === "wreake"} onClick={() => setScheme("wreake")} />
+        <SchemeTab label="LRRL County Status" active={scheme === "lrrl"} onClick={() => setScheme("lrrl")} />
+      </div>
+
+      <SchemeStatus result={active} scheme={scheme} />
+
+      <TierGrid
+        achievedTier={active.standard.tier}
+        distinctionTier={active.distinction.tier}
+        label={scheme === "wreake" ? "Wreake Club Tier Tracker" : "LRRL County Tier Tracker"}
+      />
+
+      <TargetMatrix
+        category={category}
+        lookup={STANDARDS_LOOKUP}
+        bestPerDistance={active.bestPerDistance}
+        tierAtDistance={active.tierAtDistance}
+      />
+
+      <SubmissionForm onSubmit={handleSubmit} />
+
+      {logs.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: 18, margin: "0 0 12px" }}>
+            Your logged performances ({logs.length})
+          </h3>
+          <div style={{ display: "grid", gap: 8 }}>
+            {logs.map((l) => (
+              <div
+                key={l.id}
+                style={{
+                  background: "#fff",
+                  border: `1px solid ${COLORS.mist}`,
+                  borderRadius: 10,
+                  padding: 12,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 12,
+                  flexWrap: "wrap",
+                  fontSize: 13,
+                }}
+              >
+                <div>
+                  <strong>{l.distance}</strong> · {l.formatted_time} · {l.race_name}
+                  <span style={{ opacity: 0.6, marginLeft: 8 }}>
+                    {l.race_date} · {l.is_virtual ? "Virtual" : "Official"}
+                    {l.is_leicestershire_region && " · Leics/Rutland"}
+                  </span>
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <Pill on={!l.is_virtual} text="LRRL eligible" />
+                  <Pill on={true} text="Wreake eligible" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div
+        style={{
+          marginTop: 28, padding: 14, background: COLORS.mist,
+          borderRadius: 10, fontSize: 12, opacity: 0.75,
+        }}
+      >
+        <strong>Mock-data note:</strong> performances submitted here live only in your
+        browser session. Once Supabase wiring is added, they'll persist and feed the
+        admin claims panel.
       </div>
     </div>
   );
 }
 
-function DistanceRow({ distance, value, onChange }) {
-  const seconds = useMemo(() => parseTimeToSeconds(value), [value]);
-  const thresholds = STANDARDS_TIMES[distance];
-
-  // Determine current tier (highest one the user has met).
-  const currentTier = useMemo(() => {
-    if (seconds == null) return null;
-    // Tiers are ordered easiest → hardest; iterate hardest-first.
-    const ordered = [...STANDARDS_TIERS].reverse(); // Platinum, Gold, Silver, Bronze
-    for (const tier of ordered) {
-      if (seconds <= thresholds[tier]) return tier;
-    }
-    return null; // Slower than Bronze
-  }, [seconds, thresholds]);
-
-  // What's the next tier and how far away?
-  const next = useMemo(() => {
-    if (seconds == null) return null;
-    let nextTier = null;
-    let nextTime = null;
-    if (currentTier == null) {
-      nextTier = "Bronze";
-      nextTime = thresholds.Bronze;
-    } else {
-      const idx = STANDARDS_TIERS.indexOf(currentTier);
-      if (idx < STANDARDS_TIERS.length - 1) {
-        nextTier = STANDARDS_TIERS[idx + 1];
-        nextTime = thresholds[nextTier];
-      }
-    }
-    if (nextTier == null) return null; // Already Platinum
-    const diff = seconds - nextTime;
-    // Progress: how close are we, scaled between the previous threshold and the next
-    let progress = 0;
-    if (currentTier == null) {
-      // Working toward Bronze — show progress relative to "off the scale" (e.g. 1.5× Bronze)
-      const ceiling = thresholds.Bronze * 1.5;
-      progress = Math.max(0, Math.min(1, (ceiling - seconds) / (ceiling - thresholds.Bronze)));
-    } else {
-      const prev = thresholds[currentTier];
-      progress = Math.max(0, Math.min(1, (prev - seconds) / (prev - nextTime)));
-    }
-    return { tier: nextTier, time: nextTime, diff, progress };
-  }, [seconds, currentTier, thresholds]);
-
+function SchemeTab({ label, active, onClick }) {
   return (
-    <div
+    <button
+      onClick={onClick}
       style={{
-        background: "#fff",
-        border: `1px solid ${COLORS.mist}`,
-        borderRadius: 16,
-        padding: 24,
+        padding: "12px 20px",
+        background: "transparent",
+        border: "none",
+        borderBottom: `3px solid ${active ? COLORS.teal : "transparent"}`,
+        marginBottom: -2,
+        fontSize: 15,
+        fontWeight: 700,
+        color: active ? COLORS.ink : "#6b7280",
+        cursor: "pointer",
       }}
     >
+      {label}
+    </button>
+  );
+}
+
+function SchemeStatus({ result, scheme }) {
+  const { standard, distinction, distinctDistances, geoOkForStandard, geoOkForDistinction } = result;
+  const STD = 5, DIST = 9;
+
+  function Card({ heading, tier, count, threshold, geoOk, geoMin }) {
+    return (
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 16,
-          flexWrap: "wrap",
-          marginBottom: 16,
+          background: "#fff",
+          border: `2px solid ${tier ? COLORS.teal : COLORS.mist}`,
+          borderRadius: 14,
+          padding: 18,
+          flex: 1,
+          minWidth: 220,
         }}
       >
-        <h4
-          style={{
-            fontFamily: "'Fraunces', serif",
-            fontSize: 20,
-            fontWeight: 700,
-            margin: 0,
-          }}
-        >
-          {distance}
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: 1, color: COLORS.teal, textTransform: "uppercase" }}>
+          {heading}
+        </p>
+        <h4 style={{ margin: "4px 0 8px", fontFamily: "'Fraunces', serif", fontSize: 22 }}>
+          {tier || (count >= threshold ? "Geography pending" : `${count}/${threshold} distances`)}
         </h4>
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={distance === "5k" || distance === "10k" ? "mm:ss" : "hh:mm:ss"}
-          style={{
-            padding: "10px 14px",
-            borderRadius: 10,
-            border: `1.5px solid ${COLORS.mist}`,
-            fontSize: 16,
-            fontWeight: 600,
-            width: 140,
-            outline: "none",
-            fontVariantNumeric: "tabular-nums",
-          }}
-        />
-      </div>
-
-      {/* Tier badges row */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-        {STANDARDS_TIERS.map((tier) => {
-          const achieved = currentTier && STANDARDS_TIERS.indexOf(currentTier) >= STANDARDS_TIERS.indexOf(tier);
-          return (
-            <div
-              key={tier}
-              style={{
-                padding: "6px 12px",
-                borderRadius: 20,
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: 0.5,
-                background: achieved ? TIER_COLORS[tier] : "transparent",
-                color: achieved ? "#fff" : "#9ca3af",
-                border: `1.5px solid ${achieved ? TIER_COLORS[tier] : COLORS.mist}`,
-              }}
-            >
-              {achieved && "✓ "}{tier}: {secondsToTime(thresholds[tier])}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Current tier callout */}
-      {seconds != null && (
         <div
           style={{
-            padding: 14,
-            background: currentTier ? `${TIER_COLORS[currentTier]}15` : COLORS.mist,
-            borderRadius: 10,
-            marginBottom: next ? 16 : 0,
+            height: 6, background: COLORS.mist, borderRadius: 3, overflow: "hidden",
+            marginBottom: 8,
           }}
         >
-          {currentTier ? (
-            <>
-              <strong style={{ color: TIER_COLORS[currentTier] }}>
-                🏅 {currentTier} Tier Standard achieved
-              </strong>
-              <p style={{ margin: "4px 0 0", fontSize: 13, opacity: 0.75 }}>
-                With a {secondsToTime(seconds)} you've cleared the {currentTier} threshold.
-              </p>
-            </>
-          ) : (
-            <>
-              <strong>Keep going!</strong>
-              <p style={{ margin: "4px 0 0", fontSize: 13, opacity: 0.75 }}>
-                You're working toward the Bronze tier. Every session counts.
-              </p>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Next tier progress bar */}
-      {next && (
-        <div>
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 13,
-              marginBottom: 6,
+              height: "100%",
+              width: `${Math.min(100, (count / threshold) * 100)}%`,
+              background: tier ? COLORS.green : COLORS.teal,
+              transition: "width .4s",
             }}
-          >
-            <span>
-              {next.diff > 0
-                ? `${secondsToTime(Math.abs(next.diff))} from ${next.tier}`
-                : `${next.tier} unlocked!`}
-            </span>
-            <span style={{ fontWeight: 700, color: TIER_COLORS[next.tier] }}>
-              {Math.round(next.progress * 100)}%
-            </span>
-          </div>
-          <div
-            style={{
-              height: 8,
-              background: COLORS.mist,
-              borderRadius: 4,
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                height: "100%",
-                width: `${next.progress * 100}%`,
-                background: TIER_COLORS[next.tier],
-                transition: "width .4s",
-              }}
-            />
-          </div>
+          />
         </div>
-      )}
-
-      {seconds == null && value.trim() !== "" && (
-        <p style={{ fontSize: 13, color: "#C0392B", margin: 0 }}>
-          Couldn't read that time — try {distance === "5k" || distance === "10k" ? "mm:ss" : "hh:mm:ss"} format.
+        <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>
+          {count} of {threshold} distinct distances
         </p>
-      )}
+        {scheme === "lrrl" && (
+          <p style={{ margin: "4px 0 0", fontSize: 12, color: geoOk ? COLORS.green : "#C0392B" }}>
+            Leics/Rutland geo: {geoOk ? `✓ met (≥${geoMin})` : `needs ≥${geoMin}`}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 24 }}>
+      <Card heading="Standard" tier={standard.tier} count={distinctDistances} threshold={STD} geoOk={geoOkForStandard} geoMin={3} />
+      <Card heading="Distinction" tier={distinction.tier} count={distinctDistances} threshold={DIST} geoOk={geoOkForDistinction} geoMin={6} />
     </div>
+  );
+}
+
+function Pill({ on, text }) {
+  return (
+    <span
+      style={{
+        padding: "3px 8px",
+        borderRadius: 12,
+        fontSize: 10,
+        fontWeight: 700,
+        background: on ? COLORS.green : COLORS.mist,
+        color: on ? "#fff" : "#6b7280",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {on ? "✓" : "—"} {text}
+    </span>
   );
 }

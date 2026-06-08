@@ -17,6 +17,7 @@ export default function AdminPage() {
   const [flash, setFlash] = useState("");
   const [forbidden, setForbidden] = useState(false);
 
+  // Strict route guard.
   useEffect(() => {
     if (!loading) {
       if (!loggedIn) router.replace("/login");
@@ -24,6 +25,7 @@ export default function AdminPage() {
     }
   }, [loading, loggedIn, isAdmin, router]);
 
+  // Load member directory once Admin status is confirmed.
   useEffect(() => {
     (async () => {
       if (isAdmin) {
@@ -94,9 +96,27 @@ export default function AdminPage() {
     <main style={styles.section}>
       <p style={styles.kickerDark}>ADMIN</p>
       <h2 style={styles.h2}>Member Directory</h2>
-      <p style={{ opacity: 0.7, marginTop: 8, marginBottom: 24 }}>
+      <p style={{ opacity: 0.7, marginTop: 8, marginBottom: 16 }}>
         Manage member roles and offboard users.
       </p>
+
+      <div style={{ marginBottom: 24 }}>
+        <a
+          href="/admin/claims"
+          style={{
+            display: "inline-block",
+            background: COLORS.ink,
+            color: "#fff",
+            padding: "10px 18px",
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 700,
+            textDecoration: "none",
+          }}
+        >
+          Standards Claims Review →
+        </a>
+      </div>
 
       {flash && <div style={{ ...styles.flash, marginBottom: 16 }}>{flash}</div>}
 
