@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Archivo:wght@400;500;600;700&display=swap');
+
+:root {
+  --ink: #1E2A6E;
+  --paper: #F5F8FB;
+  --sky: #2589BA;
+  --teal: #1597B8;
+  --green: #2E9E8F;
+  --mist: #DDE6F0;
+  --cyan: #5FD0E6;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Archivo', sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+button { cursor: pointer; font-family: 'Archivo', sans-serif; }
+input, textarea { font-family: 'Archivo', sans-serif; }
+a { color: inherit; text-decoration: none; }
+
+.wr-card { transition: transform .25s ease, box-shadow .25s ease; }
+.wr-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(30,42,110,.12); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
