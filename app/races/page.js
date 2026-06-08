@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { styles } from "@/lib/styles";
+import { SEED_RACES } from "@/lib/data";
 
 function RaceRow({ r }) {
   const { signups, addSignup } = useStore();
@@ -44,10 +45,10 @@ function RaceRow({ r }) {
             />
             <button
               style={styles.cta}
-              onClick={() => {
+              onClick={async () => {
                 if (name.trim()) {
-                  addSignup(r.id, name.trim());
-                  setDone(true);
+                  const ok = await addSignup(r.id, name.trim());
+                  if (ok) setDone(true);
                 }
               }}
             >
@@ -61,7 +62,7 @@ function RaceRow({ r }) {
 }
 
 export default function RacesPage() {
-  const { races } = useStore();
+  const races = SEED_RACES;
   return (
     <main style={styles.section}>
       <p style={styles.kickerDark}>FIXTURES</p>
