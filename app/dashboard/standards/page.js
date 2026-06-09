@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { useStore } from "@/lib/store";
 import { COLORS } from "@/lib/data";
 import {
@@ -11,17 +12,17 @@ import { STANDARDS_LOOKUP } from "@/lib/standards/lookup";
 
 const CURRENT_SEASON = new Date().getFullYear();
 
-// Mock profile — replace with profile.gender / profile.date_of_birth
-// once those columns exist on public.profiles.
-const MOCK_PROFILE = { gender: "Male", dob: "1990-05-10" };
-
 export default function StandardsPage() {
   const { profile } = useStore();
   const [scheme, setScheme] = useState("wreake");
   const [logs, setLogs] = useState([]);
 
-  const memberGender = profile?.gender || MOCK_PROFILE.gender;
-  const memberDob = profile?.date_of_birth || MOCK_PROFILE.dob;
+  // Pull real profile data. If gender + DOB are missing, the member
+  // is prompted to set them on /dashboard/profile and the rest of
+  // the page renders in a "preview" mode.
+  const memberGender = profile?.gender || null;
+  const memberDob = profile?.date_of_birth || null;
+  const profileReady = !!memberGender && !!memberDob;
 
   const category = useMemo(
     () => assignCategory(memberGender, memberDob, CURRENT_SEASON),
@@ -46,6 +47,25 @@ export default function StandardsPage() {
   return (
     <div>
       <StandardsBanner seasonYear={CURRENT_SEASON} />
+
+      {!profileReady ? (
+        <div
+          style={{
+            background: COLORS.mist,
+            borderLeft: "4px solid " + COLORS.teal,
+            padding: 16,
+            borderRadius: 10,
+            marginBottom: 24,
+            fontSize: 14,
+          }}
+        >
+          <strong>Set your profile to unlock Standards.</strong> The portal needs
+          your gender and date of birth to assign your age category.{" "}
+          <Link href="/dashboard/profile" style={{ color: COLORS.teal, fontWeight: 700 }}>
+            Edit your profile
+          </Link>
+        </div>
+      ) : null}
 
       <div
         style={{

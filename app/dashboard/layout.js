@@ -47,15 +47,33 @@ export default function DashboardLayout({ children }) {
 
   return (
     <main style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 32px 64px" }}>
-      <div style={{ marginBottom: 24 }}>
-        <p style={styles.kickerDark}>WELCOME BACK</p>
-        <h2 style={{ ...styles.h2, marginTop: 6 }}>
-          {profile?.first_name ? `Hi, ${profile.first_name}` : "The Club Area"}
-        </h2>
-        <p style={{ opacity: 0.7, marginTop: 8, fontSize: 14 }}>
-          Signed in as <strong>{role}</strong>.
-          {isAdmin && " You have admin privileges."}
-        </p>
+      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <p style={styles.kickerDark}>WELCOME BACK</p>
+          <h2 style={{ ...styles.h2, marginTop: 6 }}>
+            {profile?.first_name ? `Hi, ${profile.first_name}` : "The Club Area"}
+          </h2>
+          <p style={{ opacity: 0.7, marginTop: 8, fontSize: 14 }}>
+            Signed in as <strong>{role}</strong>.
+            {isAdmin && " You have admin privileges."}
+          </p>
+        </div>
+        <Link
+          href="/dashboard/profile"
+          style={{
+            padding: "8px 14px",
+            background: "#fff",
+            color: COLORS.ink,
+            border: `1.5px solid ${COLORS.mist}`,
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 700,
+            textDecoration: "none",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Edit profile
+        </Link>
       </div>
 
       <nav style={tabBar}>
