@@ -311,7 +311,7 @@ export function TargetMatrix({ category, lookup, bestPerDistance, tierAtDistance
 // =============================================================
 // Submission form
 // =============================================================
-export function SubmissionForm({ onSubmit }) {
+export function SubmissionForm({ onSubmit, submitting }) {
   const [distance, setDistance] = useState("5K");
   const [time, setTime] = useState("");
   const [isVirtual, setIsVirtual] = useState(false);
@@ -438,14 +438,16 @@ export function SubmissionForm({ onSubmit }) {
 
       <button
         onClick={submit}
+        disabled={submitting}
         style={{
           marginTop: 18,
           background: COLORS.ink, color: "#fff", border: "none",
           padding: "11px 22px", borderRadius: 10, fontWeight: 700, fontSize: 14,
-          cursor: "pointer",
+          cursor: submitting ? "wait" : "pointer",
+          opacity: submitting ? 0.6 : 1,
         }}
       >
-        Log Performance
+        {submitting ? "Saving..." : "Log Performance"}
       </button>
     </div>
   );

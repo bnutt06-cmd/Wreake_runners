@@ -2,10 +2,10 @@
 
 import { useStore } from "@/lib/store";
 import { PinnedPost, NewsList, NextRacesWidget, CalendarWidget } from "@/components/ClubAreaWidgets";
-import { PINNED_POST, MOCK_RACES } from "@/lib/mockData";
+import { PINNED_POST } from "@/lib/mockData";
 
 export default function ClubAreaHub() {
-  const { news } = useStore();
+  const { news, races } = useStore();
 
   // Show published stories only; fall back to whatever's there if the
   // 'status' field isn't set (defensive against schema differences).
@@ -39,7 +39,7 @@ export default function ClubAreaHub() {
 
       {/* SIDEBAR — 35% */}
       <aside style={{ minWidth: 0 }}>
-        <NextRacesWidget races={MOCK_RACES} />
+        <NextRacesWidget races={races} />
         <CalendarWidget />
       </aside>
 

@@ -7,19 +7,21 @@ import { COLORS } from "@/lib/data";
 import {
   StandardsBanner, TierGrid, TargetMatrix, SubmissionForm,
 } from "@/components/standards/StandardsWidgets";
-import { assignCategory, evaluateScheme, getTierTargets, highestTierFor, TIER_COLORS } from "@/lib/standards/engine";
-import { STANDARDS_LOOKUP } from "@/lib/standards/lookup";
+import {
+  assignCategory, evaluateScheme, getTierTargets, highestTierFor, TIER_COLORS,
+} from "@/lib/standards/engine";
 
 const CURRENT_SEASON = new Date().getFullYear();
 
 export default function StandardsPage() {
-  const { profile } = useStore();
+  const {
+    profile, standardsLookup, myStandardsLogs,
+    submitStandard, deleteStandardLog,
+  } = useStore();
   const [scheme, setScheme] = useState("wreake");
-  const [logs, setLogs] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [flash, setFlash] = useState("");
 
-  // Pull real profile data. If gender + DOB are missing, the member
-  // is prompted to set them on /dashboard/profile and the rest of
-  // the page renders in a "preview" mode.
   const memberGender = profile?.gender || null;
   const memberDob = profile?.date_of_birth || null;
   const profileReady = !!memberGender && !!memberDob;
@@ -29,17 +31,31 @@ export default function StandardsPage() {
     [memberGender, memberDob]
   );
 
-  function handleSubmit(submission) {
-    setLogs((prev) => [...prev, { ...submission, id: `log-${Date.now()}` }]);
+  async function handleSubmit(submission) {
+    setSubmitting(true);
+    setFlash("");
+    const { ok, error } = await submitStandard(submission);
+    setSubmitting(false);
+    if (ok) {
+      setFlash("Performance logged.");
+      setTimeout(() => setFlash(""), 3000);
+    } else {
+      setFlash("Error: " + (error || "could not save"));
+    }
+  }
+
+  async function handleDelete(id) {
+    if (!confirm("Delete this performance? This cannot be undone.")) return;
+    await deleteStandardLog(id);
   }
 
   const wreakeResult = useMemo(
-    () => evaluateScheme({ logs, scheme: "wreake", lookup: STANDARDS_LOOKUP, category }),
-    [logs, category]
+    () => evaluateScheme({ logs: myStandardsLogs, scheme: "wreake", lookup: standardsLookup, category }),
+    [myStandardsLogs, standardsLookup, category]
   );
   const lrrlResult = useMemo(
-    () => evaluateScheme({ logs, scheme: "lrrl", lookup: STANDARDS_LOOKUP, category }),
-    [logs, category]
+    () => evaluateScheme({ logs: myStandardsLogs, scheme: "lrrl", lookup: standardsLookup, category }),
+    [myStandardsLogs, standardsLookup, category]
   );
 
   const active = scheme === "wreake" ? wreakeResult : lrrlResult;
@@ -79,9 +95,9 @@ export default function StandardsPage() {
           fontSize: 13,
         }}
       >
-        <span><strong>Category:</strong> {category || "set DOB + gender in profile"}</span>
+        <span><strong>Category:</strong> {category || "set DOB and gender in profile"}</span>
         <span><strong>Season:</strong> {CURRENT_SEASON}</span>
-        <span><strong>Logged:</strong> {logs.length}</span>
+        <span><strong>Logged:</strong> {myStandardsLogs.length}</span>
         <span><strong>Distinct distances (this scheme):</strong> {active.distinctDistances}</span>
       </div>
 
@@ -89,7 +105,7 @@ export default function StandardsPage() {
         style={{
           display: "flex",
           gap: 8,
-          borderBottom: `2px solid ${COLORS.mist}`,
+          borderBottom: "2px solid " + COLORS.mist,
           marginBottom: 24,
         }}
       >
@@ -107,25 +123,29 @@ export default function StandardsPage() {
 
       <TargetMatrix
         category={category}
-        lookup={STANDARDS_LOOKUP}
+        lookup={standardsLookup}
         bestPerDistance={active.bestPerDistance}
         tierAtDistance={active.tierAtDistance}
       />
 
-      <SubmissionForm onSubmit={handleSubmit} />
+      <SubmissionForm onSubmit={handleSubmit} submitting={submitting} />
 
-      {logs.length > 0 && (
+      {flash ? (
+        <p style={{ marginTop: 12, color: COLORS.teal, fontWeight: 700, fontSize: 13 }}>{flash}</p>
+      ) : null}
+
+      {myStandardsLogs.length > 0 ? (
         <div style={{ marginTop: 24 }}>
           <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: 18, margin: "0 0 12px" }}>
-            Your logged performances ({logs.length})
+            Your logged performances ({myStandardsLogs.length})
           </h3>
           <div style={{ display: "grid", gap: 8 }}>
-            {logs.map((l) => (
+            {myStandardsLogs.map((l) => (
               <div
                 key={l.id}
                 style={{
                   background: "#fff",
-                  border: `1px solid ${COLORS.mist}`,
+                  border: "1px solid " + COLORS.mist,
                   borderRadius: 10,
                   padding: 12,
                   display: "flex",
@@ -137,33 +157,42 @@ export default function StandardsPage() {
                 }}
               >
                 <div>
-                  <strong>{l.distance}</strong> · {l.formatted_time} · {l.race_name}
+                  <strong>{l.distance}</strong> - {l.formatted_time} - {l.race_name}
                   <span style={{ opacity: 0.6, marginLeft: 8 }}>
-                    {l.race_date} · {l.is_virtual ? "Virtual" : "Official"}
-                    {l.is_leicestershire_region && " · Leics/Rutland"}
+                    {l.race_date} - {l.is_virtual ? "Virtual" : "Official"}
+                    {l.is_leicestershire_region ? " - Leics/Rutland" : ""}
                   </span>
                 </div>
                 <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                  <TierBadge seconds={l.achieved_time_seconds} distance={l.distance} category={category} />
+                  <TierBadge seconds={l.achieved_time_seconds} distance={l.distance} category={category} lookup={standardsLookup} />
                   <Pill on={!l.is_virtual} text="LRRL eligible" />
                   <Pill on={true} text="Wreake eligible" />
+                  {!l.is_verified_by_admin ? (
+                    <button
+                      onClick={() => handleDelete(l.id)}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "#C0392B",
+                        fontSize: 12,
+                        cursor: "pointer",
+                        padding: "2px 6px",
+                      }}
+                      title="Delete (only allowed before admin verification)"
+                    >
+                      delete
+                    </button>
+                  ) : (
+                    <span style={{ background: COLORS.green, color: "#fff", padding: "3px 8px", borderRadius: 12, fontSize: 10, fontWeight: 700 }}>
+                      Verified
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
-      )}
-
-      <div
-        style={{
-          marginTop: 28, padding: 14, background: COLORS.mist,
-          borderRadius: 10, fontSize: 12, opacity: 0.75,
-        }}
-      >
-        <strong>Mock-data note:</strong> performances submitted here live only in your
-        browser session. Once Supabase wiring is added, they'll persist and feed the
-        admin claims panel.
-      </div>
+      ) : null}
     </div>
   );
 }
@@ -176,7 +205,7 @@ function SchemeTab({ label, active, onClick }) {
         padding: "12px 20px",
         background: "transparent",
         border: "none",
-        borderBottom: `3px solid ${active ? COLORS.teal : "transparent"}`,
+        borderBottom: "3px solid " + (active ? COLORS.teal : "transparent"),
         marginBottom: -2,
         fontSize: 15,
         fontWeight: 700,
@@ -198,7 +227,7 @@ function SchemeStatus({ result, scheme }) {
       <div
         style={{
           background: "#fff",
-          border: `2px solid ${tier ? COLORS.teal : COLORS.mist}`,
+          border: "2px solid " + (tier ? COLORS.teal : COLORS.mist),
           borderRadius: 14,
           padding: 18,
           flex: 1,
@@ -209,18 +238,13 @@ function SchemeStatus({ result, scheme }) {
           {heading}
         </p>
         <h4 style={{ margin: "4px 0 8px", fontFamily: "'Fraunces', serif", fontSize: 22 }}>
-          {tier || (count >= threshold ? "Geography pending" : `${count}/${threshold} distances`)}
+          {tier || (count >= threshold ? "Geography pending" : count + "/" + threshold + " distances")}
         </h4>
-        <div
-          style={{
-            height: 6, background: COLORS.mist, borderRadius: 3, overflow: "hidden",
-            marginBottom: 8,
-          }}
-        >
+        <div style={{ height: 6, background: COLORS.mist, borderRadius: 3, overflow: "hidden", marginBottom: 8 }}>
           <div
             style={{
               height: "100%",
-              width: `${Math.min(100, (count / threshold) * 100)}%`,
+              width: Math.min(100, (count / threshold) * 100) + "%",
               background: tier ? COLORS.green : COLORS.teal,
               transition: "width .4s",
             }}
@@ -229,11 +253,11 @@ function SchemeStatus({ result, scheme }) {
         <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>
           {count} of {threshold} distinct distances
         </p>
-        {scheme === "lrrl" && (
+        {scheme === "lrrl" ? (
           <p style={{ margin: "4px 0 0", fontSize: 12, color: geoOk ? COLORS.green : "#C0392B" }}>
-            Leics/Rutland geo: {geoOk ? `✓ met (≥${geoMin})` : `needs ≥${geoMin}`}
+            Leics/Rutland geo: {geoOk ? "met (>= " + geoMin + ")" : "needs >= " + geoMin}
           </p>
-        )}
+        ) : null}
       </div>
     );
   }
@@ -259,28 +283,18 @@ function Pill({ on, text }) {
         whiteSpace: "nowrap",
       }}
     >
-      {on ? "✓" : "—"} {text}
+      {on ? "yes" : "no"} {text}
     </span>
   );
 }
 
-function TierBadge({ seconds, distance, category }) {
+function TierBadge({ seconds, distance, category, lookup }) {
   if (!category) return null;
-  const targets = getTierTargets(STANDARDS_LOOKUP, category, distance);
+  const targets = getTierTargets(lookup, category, distance);
   const tier = highestTierFor(seconds, targets);
   if (!tier) {
     return (
-      <span
-        style={{
-          padding: "3px 8px",
-          borderRadius: 12,
-          fontSize: 10,
-          fontWeight: 700,
-          background: COLORS.mist,
-          color: "#6b7280",
-          whiteSpace: "nowrap",
-        }}
-      >
+      <span style={{ padding: "3px 8px", borderRadius: 12, fontSize: 10, fontWeight: 700, background: COLORS.mist, color: "#6b7280", whiteSpace: "nowrap" }}>
         No tier
       </span>
     );
@@ -297,10 +311,10 @@ function TierBadge({ seconds, distance, category }) {
         background: TIER_COLORS[tier],
         color: dark ? "#fff" : COLORS.ink,
         whiteSpace: "nowrap",
-        boxShadow: `0 0 0 1.5px ${TIER_COLORS[tier]}`,
+        boxShadow: "0 0 0 1.5px " + TIER_COLORS[tier],
       }}
     >
-      🏅 {tier}
+      {tier}
     </span>
   );
 }

@@ -6,16 +6,13 @@ import { useRouter } from "next/navigation";
 import { COLORS, fmtDate } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { countdownLabel } from "@/lib/mockData";
-import { RACE_DETAILS } from "@/lib/race/mockData";
 import { fmtDistance, fmtElevation } from "@/lib/race/gpx";
 import ElevationProfile from "./ElevationProfile";
 import WeatherPanel from "./WeatherPanel";
 
 const RouteMap = dynamic(() => import("./RouteMap"), {
   ssr: false,
-  loading: () => (
-    <div style={mapLoadingStyle}>Loading map...</div>
-  ),
+  loading: () => <div style={mapLoadingStyle}>Loading map...</div>,
 });
 
 const mapLoadingStyle = {
@@ -120,42 +117,38 @@ export default function RaceDetailModal({ race, onClose, rsvpControls }) {
   const router = useRouter();
   const { isAdmin } = useStore();
 
-  const detail = useMemo(() => {
-    if (!race) return null;
-    return { ...race, ...(RACE_DETAILS[race.id] || {}) };
-  }, [race]);
-
+  // Build elevation profile from the race's route array (if uploaded).
   const elevationProfile = useMemo(() => {
-    if (!detail || !detail.route || detail.route.length < 2) return null;
-    const totalKm = (detail.distance_m || 0) / 1000;
-    return detail.route.map((p, i) => ({
-      km: (i / (detail.route.length - 1)) * totalKm,
+    if (!race || !race.route || race.route.length < 2) return null;
+    const totalKm = (race.distance_m || 0) / 1000;
+    return race.route.map((p, i) => ({
+      km: (i / (race.route.length - 1)) * totalKm,
       ele: p.ele,
     }));
-  }, [detail]);
+  }, [race]);
 
   const bounds = useMemo(() => {
-    if (!detail || !detail.route) return null;
+    if (!race || !race.route) return null;
     let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
-    for (const p of detail.route) {
+    for (const p of race.route) {
       if (p.lat < minLat) minLat = p.lat;
       if (p.lat > maxLat) maxLat = p.lat;
       if (p.lon < minLon) minLon = p.lon;
       if (p.lon > maxLon) maxLon = p.lon;
     }
     return { minLat, maxLat, minLon, maxLon };
-  }, [detail]);
+  }, [race]);
 
-  if (!race || !detail) return null;
+  if (!race) return null;
 
   function handleEdit() {
     onClose();
     router.push("/admin/races?edit=" + race.id);
   }
 
-  const distanceValue = detail.distance_m ? fmtDistance(detail.distance_m) : (race.distance || "—");
-  const gainValue = detail.elevation_gain_m != null ? fmtElevation(detail.elevation_gain_m) : "—";
-  const lossValue = detail.elevation_loss_m != null ? fmtElevation(detail.elevation_loss_m) : "—";
+  const distanceValue = race.distance_m ? fmtDistance(race.distance_m) : (race.distance_text || "");
+  const gainValue = race.elevation_gain_m != null ? fmtElevation(race.elevation_gain_m) : "";
+  const lossValue = race.elevation_loss_m != null ? fmtElevation(race.elevation_loss_m) : "";
 
   return (
     <div style={overlayStyle} onClick={onClose}>
@@ -169,14 +162,14 @@ export default function RaceDetailModal({ race, onClose, rsvpControls }) {
           </div>
 
           <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: 1, color: COLORS.teal, textTransform: "uppercase" }}>
-            {race.type}
+            {race.type || "Race"}
           </p>
           <h2 style={{ margin: "4px 0 8px", fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 700, paddingRight: isAdmin ? 130 : 48 }}>
             {race.name}
           </h2>
           <div style={{ display: "flex", gap: 14, flexWrap: "wrap", fontSize: 13, opacity: 0.8 }}>
             <span>{fmtDate(race.race_date)}</span>
-            <span>{race.location}</span>
+            {race.location ? <span>{race.location}</span> : null}
             <span style={{ background: COLORS.teal, color: "#fff", padding: "2px 10px", borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
               {countdownLabel(race.race_date)}
             </span>
@@ -185,9 +178,9 @@ export default function RaceDetailModal({ race, onClose, rsvpControls }) {
 
         <div style={{ padding: "20px 28px 28px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 20 }}>
-            <StatBox label="Distance" value={distanceValue} />
-            <StatBox label="Elevation gain" value={gainValue} />
-            <StatBox label="Elevation loss" value={lossValue} />
+            <StatBox label="Distance" value={distanceValue || "-"} />
+            <StatBox label="Elevation gain" value={gainValue || "-"} />
+            <StatBox label="Elevation loss" value={lossValue || "-"} />
             {race.external_signup_url ? (
               <a href={race.external_signup_url} target="_blank" rel="noopener noreferrer" style={externalLinkStyle}>
                 External signup
@@ -195,22 +188,22 @@ export default function RaceDetailModal({ race, onClose, rsvpControls }) {
             ) : null}
           </div>
 
-          {detail.description ? (
+          {race.description ? (
             <section style={sectionStyle}>
               <h3 style={sectionHeadingStyle}>About the race</h3>
-              <p style={{ margin: 0, lineHeight: 1.7, fontSize: 15 }}>{detail.description}</p>
-              {detail.course_notes ? (
+              <p style={{ margin: 0, lineHeight: 1.7, fontSize: 15 }}>{race.description}</p>
+              {race.course_notes ? (
                 <div style={{ marginTop: 12, padding: 12, background: COLORS.mist, borderRadius: 10, fontSize: 13 }}>
-                  <strong>Course notes:</strong> {detail.course_notes}
+                  <strong>Course notes:</strong> {race.course_notes}
                 </div>
               ) : null}
             </section>
           ) : null}
 
-          {detail.route && detail.route.length > 1 ? (
+          {race.route && race.route.length > 1 ? (
             <section style={sectionStyle}>
               <h3 style={sectionHeadingStyle}>Route</h3>
-              <RouteMap points={detail.route} bounds={bounds} />
+              <RouteMap points={race.route} bounds={bounds} />
               {elevationProfile ? (
                 <div style={{ marginTop: 12 }}>
                   <ElevationProfile profile={elevationProfile} />
@@ -219,10 +212,10 @@ export default function RaceDetailModal({ race, onClose, rsvpControls }) {
             </section>
           ) : null}
 
-          {detail.start_lat != null ? (
+          {race.start_lat != null ? (
             <section style={sectionStyle}>
               <h3 style={sectionHeadingStyle}>Weather</h3>
-              <WeatherPanel lat={detail.start_lat} lon={detail.start_lon} raceDate={race.race_date} />
+              <WeatherPanel lat={race.start_lat} lon={race.start_lon} raceDate={race.race_date} />
             </section>
           ) : null}
 

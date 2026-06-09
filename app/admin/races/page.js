@@ -6,8 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { COLORS, fmtDate } from "@/lib/data";
 import { styles } from "@/lib/styles";
-import { MOCK_RACES } from "@/lib/mockData";
-import { RACE_DETAILS } from "@/lib/race/mockData";
 import { parseGpx, fmtDistance, fmtElevation } from "@/lib/race/gpx";
 
 const TYPES = [
@@ -19,8 +17,6 @@ const TYPES = [
   "Other",
 ];
 
-// Top-level page wraps the searchParams-using inner in Suspense
-// (required by Next 14 when reading the query string).
 export default function AdminRacesPage() {
   return (
     <Suspense fallback={<p style={{ padding: 40 }}>Loading...</p>}>
@@ -31,13 +27,16 @@ export default function AdminRacesPage() {
 
 function AdminRacesInner() {
   const router = useRouter();
-  const { loggedIn, loading, isAdmin } = useStore();
+  const {
+    loggedIn, loading, isAdmin,
+    races, createRace, updateRace, deleteRace, uploadRaceGpx,
+  } = useStore();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
 
-  const seed = MOCK_RACES.map((r) => ({ ...r, ...(RACE_DETAILS[r.id] || {}) }));
-  const [races, setRaces] = useState(seed);
   const [editing, setEditing] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [flash, setFlash] = useState("");
 
   useEffect(() => {
     if (!loading && (!loggedIn || !isAdmin)) {
@@ -51,18 +50,18 @@ function AdminRacesInner() {
       if (target) setEditing({ ...target });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editId]);
+  }, [editId, races]);
 
   if (loading) return <p style={{ padding: 40 }}>Loading...</p>;
   if (!loggedIn || !isAdmin) return null;
 
   function startNew() {
     setEditing({
-      id: "race-new-" + Date.now(),
+      id: null,
       name: "",
       race_date: "",
       location: "",
-      distance: "",
+      distance_text: "",
       type: TYPES[0],
       blurb: "",
       description: "",
@@ -74,7 +73,9 @@ function AdminRacesInner() {
       elevation_loss_m: null,
       start_lat: null,
       start_lon: null,
+      gpx_storage_path: null,
       _isNew: true,
+      _gpxFile: null,
     });
   }
 
@@ -82,21 +83,51 @@ function AdminRacesInner() {
     setEditing({ ...race });
   }
 
-  function saveEditing() {
+  async function saveEditing() {
     if (!editing.name.trim() || !editing.race_date) {
-      alert("Name and date are required.");
+      setFlash("Name and date are required.");
       return;
     }
+    setSaving(true);
+    setFlash("");
+
+    let raceId = editing.id;
+    let payload = { ...editing };
+
     if (editing._isNew) {
-      setRaces((rs) => [...rs, { ...editing, _isNew: undefined }]);
+      const { ok, race, error } = await createRace(payload);
+      if (!ok) { setFlash("Error: " + (error || "could not save")); setSaving(false); return; }
+      raceId = race.id;
     } else {
-      setRaces((rs) => rs.map((r) => (r.id === editing.id ? editing : r)));
+      const { ok, error } = await updateRace(raceId, payload);
+      if (!ok) { setFlash("Error: " + (error || "could not save")); setSaving(false); return; }
     }
+
+    // If a new GPX file was attached, upload it and update the race row.
+    if (editing._gpxFile) {
+      const upload = await uploadRaceGpx(raceId, editing._gpxFile);
+      if (upload.ok) {
+        await updateRace(raceId, { gpx_storage_path: upload.storage_path });
+      } else {
+        setFlash("Race saved, but GPX upload failed: " + (upload.error || ""));
+      }
+    }
+
+    setSaving(false);
     setEditing(null);
+    setFlash("");
+    router.replace("/admin/races");
+  }
+
+  async function handleDelete(race) {
+    if (!confirm('Delete "' + race.name + '"? This removes the race and all its RSVPs.')) return;
+    const { ok, error } = await deleteRace(race.id);
+    if (!ok) setFlash("Error: " + (error || "could not delete"));
   }
 
   function cancelEditing() {
     setEditing(null);
+    router.replace("/admin/races");
   }
 
   return (
@@ -113,44 +144,55 @@ function AdminRacesInner() {
         distance, and elevation automatically.
       </p>
 
+      {flash ? (
+        <div style={{ ...styles.flash, marginBottom: 16 }}>{flash}</div>
+      ) : null}
+
       {!editing ? (
         <>
           <button onClick={startNew} style={{ ...styles.cta, marginBottom: 20 }}>
             + New race
           </button>
 
-          <div style={{ display: "grid", gap: 12 }}>
-            {races.map((r) => (
-              <div
-                key={r.id}
-                style={{
-                  background: "#fff",
-                  border: "1px solid " + COLORS.mist,
-                  borderRadius: 14,
-                  padding: 16,
-                  display: "flex",
-                  gap: 16,
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                }}
-              >
-                <div style={{ flex: 1, minWidth: 240 }}>
-                  <strong style={{ fontSize: 16 }}>{r.name}</strong>
-                  <p style={{ margin: "2px 0 0", fontSize: 13, opacity: 0.7 }}>
-                    {fmtDate(r.race_date)} - {r.location || "no location set"}
-                  </p>
-                  <div style={{ display: "flex", gap: 10, marginTop: 6, fontSize: 12, flexWrap: "wrap" }}>
-                    <Pill on={!!r.route} text="Route" />
-                    <Pill on={!!r.description} text="Description" />
-                    <Pill on={!!r.external_signup_url} text="Signup link" />
+          {races.length === 0 ? (
+            <div style={{ padding: 32, textAlign: "center", opacity: 0.7, background: "#fff", borderRadius: 14, border: "1px solid " + COLORS.mist }}>
+              No races yet. Click + New race above to add the first.
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: 12 }}>
+              {races.map((r) => (
+                <div
+                  key={r.id}
+                  style={{
+                    background: "#fff",
+                    border: "1px solid " + COLORS.mist,
+                    borderRadius: 14,
+                    padding: 16,
+                    display: "flex",
+                    gap: 16,
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 240 }}>
+                    <strong style={{ fontSize: 16 }}>{r.name}</strong>
+                    <p style={{ margin: "2px 0 0", fontSize: 13, opacity: 0.7 }}>
+                      {fmtDate(r.race_date)} - {r.location || "no location set"}
+                    </p>
+                    <div style={{ display: "flex", gap: 10, marginTop: 6, fontSize: 12, flexWrap: "wrap" }}>
+                      <Pill on={!!r.route} text="Route" />
+                      <Pill on={!!r.description} text="Description" />
+                      <Pill on={!!r.external_signup_url} text="Signup link" />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={() => startEdit(r)} style={ghostStyle}>Edit</button>
+                    <button onClick={() => handleDelete(r)} style={dangerStyle}>Delete</button>
                   </div>
                 </div>
-                <button onClick={() => startEdit(r)} style={ghostStyle}>
-                  Edit
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </>
       ) : null}
 
@@ -160,59 +202,31 @@ function AdminRacesInner() {
           onChange={setEditing}
           onSave={saveEditing}
           onCancel={cancelEditing}
+          saving={saving}
         />
       ) : null}
-
-      <div
-        style={{
-          marginTop: 32,
-          padding: 14,
-          background: COLORS.mist,
-          borderRadius: 10,
-          fontSize: 12,
-          opacity: 0.75,
-        }}
-      >
-        <strong>Mock-data note:</strong> changes here live only in your browser
-        session. Once Supabase wiring is added, saves persist to the races table
-        and uploaded GPX files go into Supabase Storage.
-      </div>
     </main>
   );
 }
 
-function RaceEditor({ race, onChange, onSave, onCancel }) {
+function RaceEditor({ race, onChange, onSave, onCancel, saving }) {
   const set = (k, v) => onChange({ ...race, [k]: v });
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        border: "1px solid " + COLORS.mist,
-        borderRadius: 16,
-        padding: 24,
-      }}
-    >
+    <div style={{ background: "#fff", border: "1px solid " + COLORS.mist, borderRadius: 16, padding: 24 }}>
       <h3 style={{ margin: "0 0 16px", fontFamily: "'Fraunces', serif" }}>
         {race._isNew ? "New race" : "Editing: " + (race.name || "(unnamed)")}
       </h3>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 14,
-          marginBottom: 14,
-        }}
-      >
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginBottom: 14 }}>
         <Field label="Race name">
-          <input style={inputStyle} value={race.name} onChange={(e) => set("name", e.target.value)} />
+          <input style={inputStyle} value={race.name || ""} onChange={(e) => set("name", e.target.value)} />
         </Field>
         <Field label="Date">
-          <input type="date" style={inputStyle} value={race.race_date} onChange={(e) => set("race_date", e.target.value)} />
+          <input type="date" style={inputStyle} value={race.race_date || ""} onChange={(e) => set("race_date", e.target.value)} />
         </Field>
         <Field label="Type">
-          <select style={inputStyle} value={race.type} onChange={(e) => set("type", e.target.value)}>
+          <select style={inputStyle} value={race.type || TYPES[0]} onChange={(e) => set("type", e.target.value)}>
             {TYPES.map((t) => <option key={t}>{t}</option>)}
           </select>
         </Field>
@@ -220,7 +234,7 @@ function RaceEditor({ race, onChange, onSave, onCancel }) {
           <input style={inputStyle} value={race.location || ""} onChange={(e) => set("location", e.target.value)} placeholder="e.g. Rotherby, Leicestershire" />
         </Field>
         <Field label="Stated distance">
-          <input style={inputStyle} value={race.distance || ""} onChange={(e) => set("distance", e.target.value)} placeholder="e.g. 8 miles, 5k, half marathon" />
+          <input style={inputStyle} value={race.distance_text || ""} onChange={(e) => set("distance_text", e.target.value)} placeholder="e.g. 8 miles, 5k, half marathon" />
         </Field>
         <Field label="External signup URL">
           <input type="url" style={inputStyle} value={race.external_signup_url || ""} onChange={(e) => set("external_signup_url", e.target.value)} placeholder="https://..." />
@@ -241,17 +255,13 @@ function RaceEditor({ race, onChange, onSave, onCancel }) {
 
       <div style={{ marginTop: 20 }}>
         <GpxDropzone
-          existing={
-            race.route
-              ? {
-                  distance_m: race.distance_m,
-                  elevation_gain_m: race.elevation_gain_m,
-                  elevation_loss_m: race.elevation_loss_m,
-                  point_count: race.route.length,
-                }
-              : null
-          }
-          onParsed={(parsed) => {
+          existing={race.route ? {
+            distance_m: race.distance_m,
+            elevation_gain_m: race.elevation_gain_m,
+            elevation_loss_m: race.elevation_loss_m,
+            point_count: race.route.length,
+          } : null}
+          onParsed={(parsed, file) => {
             onChange({
               ...race,
               route: parsed.points,
@@ -260,6 +270,7 @@ function RaceEditor({ race, onChange, onSave, onCancel }) {
               elevation_loss_m: parsed.elevation_loss_m,
               start_lat: parsed.start.lat,
               start_lon: parsed.start.lon,
+              _gpxFile: file,
             });
           }}
           onClear={() => {
@@ -271,14 +282,18 @@ function RaceEditor({ race, onChange, onSave, onCancel }) {
               elevation_loss_m: null,
               start_lat: null,
               start_lon: null,
+              gpx_storage_path: null,
+              _gpxFile: null,
             });
           }}
         />
       </div>
 
       <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
-        <button style={styles.cta} onClick={onSave}>Save race</button>
-        <button style={ghostStyle} onClick={onCancel}>Cancel</button>
+        <button style={styles.cta} onClick={onSave} disabled={saving}>
+          {saving ? "Saving..." : "Save race"}
+        </button>
+        <button style={ghostStyle} onClick={onCancel} disabled={saving}>Cancel</button>
       </div>
     </div>
   );
@@ -293,23 +308,14 @@ function GpxDropzone({ existing, onParsed, onClear }) {
   async function handleFile(file) {
     setErr("");
     if (!file) return;
-    if (!/\.gpx$/i.test(file.name)) {
-      setErr("That does not look like a .gpx file.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setErr("File too large (5 MB max).");
-      return;
-    }
+    if (!/\.gpx$/i.test(file.name)) { setErr("That does not look like a .gpx file."); return; }
+    if (file.size > 5 * 1024 * 1024) { setErr("File too large (5 MB max)."); return; }
     setBusy(true);
     try {
       const text = await file.text();
       const parsed = parseGpx(text);
-      if (!parsed) {
-        setErr("Could not read this GPX - no track points found.");
-        return;
-      }
-      onParsed(parsed);
+      if (!parsed) { setErr("Could not read this GPX - no track points found."); return; }
+      onParsed(parsed, file);
     } catch (e) {
       setErr("Could not read this file.");
     } finally {
@@ -402,6 +408,17 @@ const ghostStyle = {
   background: "transparent",
   color: COLORS.ink,
   border: "1.5px solid " + COLORS.ink,
+  padding: "10px 18px",
+  borderRadius: 8,
+  fontSize: 14,
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const dangerStyle = {
+  background: "transparent",
+  color: "#C0392B",
+  border: "1.5px solid #C0392B",
   padding: "10px 18px",
   borderRadius: 8,
   fontSize: 14,

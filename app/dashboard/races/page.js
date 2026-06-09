@@ -3,20 +3,18 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { COLORS, fmtDate, fullName } from "@/lib/data";
-import { MOCK_RACES, MOCK_ROSTERS, countdownLabel } from "@/lib/mockData";
+import { countdownLabel } from "@/lib/mockData";
 import { useStore } from "@/lib/store";
 import RaceDetailModal from "@/components/race/RaceDetailModal";
 
 const FILTERS = ["All", "LRRL League Race", "Cross-country League", "Club Series", "Social / parkrun", "Endurance / Team"];
 
 export default function RaceHub() {
-  const { profile } = useStore();
+  const { profile, user, races, raceRegs, toggleRaceRegistration } = useStore();
   const searchParams = useSearchParams();
   const focusId = searchParams.get("focus");
 
   const [filter, setFilter] = useState("All");
-  const [rsvps, setRsvps] = useState({});
-  const [rosters, setRosters] = useState(MOCK_ROSTERS);
   const [openRace, setOpenRace] = useState(null);
 
   const rowRefs = useRef({});
@@ -27,34 +25,40 @@ export default function RaceHub() {
     }
   }, [focusId]);
 
-  const races = useMemo(() => {
-    const sorted = [...MOCK_RACES].sort(
-      (a, b) => new Date(a.race_date) - new Date(b.race_date)
-    );
-    if (filter === "All") return sorted;
-    return sorted.filter((r) => r.type === filter);
-  }, [filter]);
+  // Filtered list
+  const filtered = useMemo(() => {
+    if (filter === "All") return races;
+    return races.filter((r) => r.type === filter);
+  }, [races, filter]);
 
-  function toggleRsvp(raceId) {
-    const me = profile
-      ? {
-          id: profile.id || "me",
-          name: fullName(profile) || "You",
-          initials: ((profile.first_name?.[0] || "") + (profile.last_name?.[0] || "")).toUpperCase() || "ME",
-          color: COLORS.ink,
-        }
-      : { id: "me", name: "You", initials: "ME", color: COLORS.ink };
+  // Group registrations by race so we can render rosters quickly
+  const rostersByRace = useMemo(() => {
+    const map = {};
+    for (const r of raceRegs) {
+      if (!map[r.race_id]) map[r.race_id] = [];
+      const p = r.profiles || {};
+      const name = (p.first_name || "") + " " + (p.last_name || "");
+      const initials = ((p.first_name?.[0] || "") + (p.last_name?.[0] || "")).toUpperCase() || "?";
+      map[r.race_id].push({
+        id: r.profile_id,
+        name: name.trim() || "Member",
+        initials,
+        color: COLORS.ink,
+      });
+    }
+    return map;
+  }, [raceRegs]);
 
-    const wasIn = !!rsvps[raceId];
-    setRsvps((r) => ({ ...r, [raceId]: !wasIn }));
-    setRosters((rs) => {
-      const current = rs[raceId] || [];
-      if (wasIn) {
-        return { ...rs, [raceId]: current.filter((u) => u.id !== me.id) };
-      }
-      if (current.some((u) => u.id === me.id)) return rs;
-      return { ...rs, [raceId]: [me, ...current] };
-    });
+  const myRegs = useMemo(() => {
+    const set = new Set();
+    for (const r of raceRegs) {
+      if (r.profile_id === user?.id) set.add(r.race_id);
+    }
+    return set;
+  }, [raceRegs, user]);
+
+  async function handleToggle(raceId) {
+    await toggleRaceRegistration(raceId);
   }
 
   return (
@@ -64,7 +68,7 @@ export default function RaceHub() {
           Race Hub
         </h3>
         <p style={{ opacity: 0.7, margin: 0, fontSize: 15 }}>
-          Tap a race to see route, elevation and weather. <strong>I'm Running</strong> lets other club members know you'll be there.
+          Tap a race to see route, elevation and weather. <strong>I am Running</strong> lets other club members know you will be there.
         </p>
       </div>
 
@@ -78,7 +82,7 @@ export default function RaceHub() {
               borderRadius: 20,
               fontSize: 13,
               fontWeight: 600,
-              border: `1.5px solid ${filter === f ? COLORS.ink : COLORS.mist}`,
+              border: "1.5px solid " + (filter === f ? COLORS.ink : COLORS.mist),
               background: filter === f ? COLORS.ink : "#fff",
               color: filter === f ? "#fff" : COLORS.ink,
               cursor: "pointer",
@@ -89,89 +93,102 @@ export default function RaceHub() {
         ))}
       </div>
 
-      <div style={{ display: "grid", gap: 16 }}>
-        {races.map((race) => (
-          <div
-            key={race.id}
-            ref={(el) => (rowRefs.current[race.id] = el)}
-            style={{
-              background: "#fff",
-              border: `2px solid ${focusId === race.id ? COLORS.teal : COLORS.mist}`,
-              borderRadius: 16,
-              padding: 24,
-              transition: "border-color .3s, box-shadow .2s",
-              cursor: "pointer",
-            }}
-            onClick={() => setOpenRace(race)}
-            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 10px 24px rgba(30,42,110,.08)")}
-            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
-          >
-            <div style={{ display: "flex", gap: 20, justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", marginBottom: 14 }}>
-              <div style={{ flex: "1 1 320px", minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.teal, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>
-                  {race.type}
-                </div>
-                <h4 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 700, margin: "0 0 6px" }}>
-                  {race.name}
-                </h4>
-                <p style={{ margin: "0 0 8px", fontSize: 14, opacity: 0.75 }}>
-                  {race.distance} · {race.location}
-                </p>
-                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55 }}>{race.blurb}</p>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-                <div style={{ background: COLORS.ink, color: "#fff", padding: "10px 14px", borderRadius: 12, textAlign: "center", minWidth: 120 }}>
-                  <div style={{ fontSize: 13, opacity: 0.85 }}>{fmtDate(race.race_date)}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.cyan, marginTop: 2 }}>
-                    {countdownLabel(race.race_date)}
+      {races.length === 0 ? (
+        <div style={{ padding: 48, textAlign: "center", background: "#fff", borderRadius: 16, border: "1px solid " + COLORS.mist }}>
+          <p style={{ fontSize: 16, fontWeight: 700, margin: "0 0 8px" }}>No races yet</p>
+          <p style={{ margin: 0, opacity: 0.7, fontSize: 14 }}>
+            Admins can add the first race via Admin then Manage Races.
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: 16 }}>
+          {filtered.map((race) => {
+            const roster = rostersByRace[race.id] || [];
+            const meIn = myRegs.has(race.id);
+            return (
+              <div
+                key={race.id}
+                ref={(el) => (rowRefs.current[race.id] = el)}
+                style={{
+                  background: "#fff",
+                  border: "2px solid " + (focusId === race.id ? COLORS.teal : COLORS.mist),
+                  borderRadius: 16,
+                  padding: 24,
+                  transition: "border-color .3s, box-shadow .2s",
+                  cursor: "pointer",
+                }}
+                onClick={() => setOpenRace(race)}
+                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 10px 24px rgba(30,42,110,.08)")}
+                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
+              >
+                <div style={{ display: "flex", gap: 20, justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", marginBottom: 14 }}>
+                  <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.teal, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>
+                      {race.type || "Race"}
+                    </div>
+                    <h4 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 700, margin: "0 0 6px" }}>
+                      {race.name}
+                    </h4>
+                    <p style={{ margin: "0 0 8px", fontSize: 14, opacity: 0.75 }}>
+                      {race.distance_text || ""}{race.distance_text && race.location ? " - " : ""}{race.location || ""}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55 }}>{race.blurb || ""}</p>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+                    <div style={{ background: COLORS.ink, color: "#fff", padding: "10px 14px", borderRadius: 12, textAlign: "center", minWidth: 120 }}>
+                      <div style={{ fontSize: 13, opacity: 0.85 }}>{fmtDate(race.race_date)}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.cyan, marginTop: 2 }}>
+                        {countdownLabel(race.race_date)}
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+                <div
+                  style={{ display: "flex", gap: 16, alignItems: "center", paddingTop: 16, borderTop: "1px solid " + COLORS.mist, flexWrap: "wrap" }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <RsvpToggle on={meIn} onClick={() => handleToggle(race.id)} />
+                  <RosterRow runners={roster} />
+                  <button
+                    onClick={() => setOpenRace(race)}
+                    style={{
+                      marginLeft: "auto",
+                      background: "transparent",
+                      color: COLORS.teal,
+                      border: "none",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      padding: "4px 8px",
+                    }}
+                  >
+                    View details
+                  </button>
+                </div>
               </div>
+            );
+          })}
+          {filtered.length === 0 ? (
+            <div style={{ padding: 32, textAlign: "center", opacity: 0.6 }}>
+              No races match this filter.
             </div>
+          ) : null}
+        </div>
+      )}
 
-            <div
-              style={{ display: "flex", gap: 16, alignItems: "center", paddingTop: 16, borderTop: `1px solid ${COLORS.mist}`, flexWrap: "wrap" }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <RsvpToggle on={!!rsvps[race.id]} onClick={() => toggleRsvp(race.id)} />
-              <RosterRow runners={rosters[race.id] || []} />
-              <button
-                onClick={() => setOpenRace(race)}
-                style={{
-                  marginLeft: "auto",
-                  background: "transparent",
-                  color: COLORS.teal,
-                  border: "none",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  padding: "4px 8px",
-                }}
-              >
-                View details
-              </button>
-            </div>
-          </div>
-        ))}
-        {races.length === 0 && (
-          <div style={{ padding: 32, textAlign: "center", opacity: 0.6 }}>
-            No races match this filter.
-          </div>
-        )}
-      </div>
-
-      {openRace && (
+      {openRace ? (
         <RaceDetailModal
           race={openRace}
           onClose={() => setOpenRace(null)}
           rsvpControls={
             <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-              <RsvpToggle on={!!rsvps[openRace.id]} onClick={() => toggleRsvp(openRace.id)} />
-              <RosterRow runners={rosters[openRace.id] || []} />
+              <RsvpToggle on={myRegs.has(openRace.id)} onClick={() => handleToggle(openRace.id)} />
+              <RosterRow runners={rostersByRace[openRace.id] || []} />
             </div>
           }
         />
-      )}
+      ) : null}
     </div>
   );
 }
@@ -190,7 +207,7 @@ function RsvpToggle({ on, onClick }) {
         border: "none",
         background: on ? COLORS.green : "#fff",
         color: on ? "#fff" : COLORS.ink,
-        boxShadow: on ? "none" : `inset 0 0 0 1.5px ${COLORS.mist}`,
+        boxShadow: on ? "none" : "inset 0 0 0 1.5px " + COLORS.mist,
         fontWeight: 700,
         fontSize: 14,
         cursor: "pointer",
@@ -203,7 +220,7 @@ function RsvpToggle({ on, onClick }) {
           height: 16,
           borderRadius: "50%",
           background: on ? "#fff" : "transparent",
-          border: on ? "none" : `2px solid ${COLORS.mist}`,
+          border: on ? "none" : "2px solid " + COLORS.mist,
           display: "grid",
           placeItems: "center",
           color: COLORS.green,
@@ -211,9 +228,9 @@ function RsvpToggle({ on, onClick }) {
           fontWeight: 900,
         }}
       >
-        {on ? "✓" : ""}
+        {on ? "Y" : ""}
       </span>
-      {on ? "I'm Running" : "I'm Running?"}
+      {on ? "I am Running" : "I am Running?"}
     </button>
   );
 }
@@ -246,7 +263,7 @@ function RosterRow({ runners }) {
             {r.initials}
           </div>
         ))}
-        {extra > 0 && (
+        {extra > 0 ? (
           <div
             style={{
               width: 32,
@@ -264,12 +281,10 @@ function RosterRow({ runners }) {
           >
             +{extra}
           </div>
-        )}
+        ) : null}
       </div>
       <span style={{ fontSize: 13, opacity: 0.7 }}>
-        {runners.length === 0
-          ? "Be the first to RSVP"
-          : `${runners.length} running`}
+        {runners.length === 0 ? "Be the first to RSVP" : runners.length + " running"}
       </span>
     </div>
   );
