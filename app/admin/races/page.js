@@ -50,7 +50,7 @@ function AdminRacesInner() {
       if (target) setEditing({ ...target });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editId, races]);
+  }, [editId]);
 
   if (loading) return <p style={{ padding: 40 }}>Loading...</p>;
   if (!loggedIn || !isAdmin) return null;

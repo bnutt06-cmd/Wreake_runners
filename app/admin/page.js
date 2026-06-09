@@ -44,7 +44,8 @@ export default function AdminPage() {
         setMembers(data);
       }
     })();
-  }, [isAdmin, listAllProfiles]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
 
   if (loading) return <main style={styles.section}><p>Loading…</p></main>;
   if (!loggedIn) return null;

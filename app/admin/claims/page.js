@@ -38,7 +38,8 @@ export default function ClaimsPanel() {
         setAllLogs(data);
       }
     })();
-  }, [isAdmin, listAllStandardsLogs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
 
   // Build a claim per (member, scheme) that meets at least the Standard threshold (5).
   const claims = useMemo(() => {
