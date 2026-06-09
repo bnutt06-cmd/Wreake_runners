@@ -1,107 +1,97 @@
 -- ============================================================
--- Wreake Runners — Standards schema migration
--- Run this when you're ready to wire the Standards portal to
--- Supabase (currently mock-data-only).
+-- Wreake Runners — Race Hub schema migration
+-- Run when wiring the Race Hub to Supabase.
 --
--- Adds:
---  - gender + date_of_birth columns on profiles
---  - standards_lookup table (the 1,980-row target time table)
---  - member_standards_log table (member submissions)
---  - RLS policies
+-- Builds on the addendum: extends `races` with GPX-derived fields,
+-- adds storage policy for gpx files, and the race_registrations
+-- table for "I'm Running".
 -- ============================================================
 
--- ---------- profiles: add member attributes for category assignment ----------
-alter table public.profiles add column if not exists gender text check (gender in ('Male', 'Female'));
-alter table public.profiles add column if not exists date_of_birth date;
-
--- ---------- standards_lookup ----------
-create table if not exists public.standards_lookup (
+-- ---------- races ----------
+create table if not exists public.races (
   id uuid default gen_random_uuid() primary key,
-  category text not null,
-  distance text not null,
-  tier text not null,
-  target_time_seconds integer not null,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  name text not null,
+  race_date date not null,
+  type text,
+  location text,
+  distance_text text,                 -- 'stated' distance e.g. "8 miles"
+  blurb text,                         -- shown on list view
+  description text,                   -- shown in modal
+  course_notes text,
+  external_signup_url text,
+  -- GPX-derived (populated when an admin uploads a GPX)
+  route jsonb,                        -- simplified [{lat,lon,ele},...] for map render
+  distance_m integer,
+  elevation_gain_m integer,
+  elevation_loss_m integer,
+  start_lat double precision,
+  start_lon double precision,
+  gpx_storage_path text,              -- e.g. 'race-gpx/uuid.gpx' in Storage bucket
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
-create index if not exists idx_standards_lookup_lookup
-  on public.standards_lookup (category, distance);
 
-alter table public.standards_lookup enable row level security;
+create index if not exists idx_races_date on public.races (race_date desc);
 
--- Lookup is read-only to all authenticated users; only admins write.
-drop policy if exists "lookup readable" on public.standards_lookup;
-create policy "lookup readable"
-  on public.standards_lookup for select
-  to authenticated using (true);
+alter table public.races enable row level security;
 
-drop policy if exists "admins write lookup" on public.standards_lookup;
-create policy "admins write lookup"
-  on public.standards_lookup for all
+drop policy if exists "races readable by all" on public.races;
+create policy "races readable by all"
+  on public.races for select
+  to anon, authenticated using (true);
+
+drop policy if exists "admins write races" on public.races;
+create policy "admins write races"
+  on public.races for all
   to authenticated using (public.is_admin()) with check (public.is_admin());
 
--- ---------- member_standards_log ----------
-create table if not exists public.member_standards_log (
+-- ---------- race_registrations (the I'm Running RSVPs) ----------
+create table if not exists public.race_registrations (
   id uuid default gen_random_uuid() primary key,
+  race_id uuid references public.races(id) on delete cascade not null,
   profile_id uuid references public.profiles(id) on delete cascade not null,
-  distance text not null,
-  achieved_time_seconds integer not null,
-  formatted_time text not null,
-  race_name text not null,
-  race_date date not null,
-  is_virtual boolean default false not null,
-  is_leicestershire_region boolean default false not null,
-  is_valid_lrrl_5k boolean default true not null,
-  proof_url text,
-  is_verified_by_admin boolean default false not null,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique (race_id, profile_id)
 );
 
-create index if not exists idx_msl_profile on public.member_standards_log (profile_id);
+create index if not exists idx_race_regs_race on public.race_registrations (race_id);
 
-alter table public.member_standards_log enable row level security;
+alter table public.race_registrations enable row level security;
 
--- Members read/write their own logs.
-drop policy if exists "members read own logs" on public.member_standards_log;
-create policy "members read own logs"
-  on public.member_standards_log for select
-  to authenticated using (auth.uid() = profile_id);
+-- Everyone can see who's running (so the roster can render publicly).
+drop policy if exists "regs readable by all" on public.race_registrations;
+create policy "regs readable by all"
+  on public.race_registrations for select
+  to anon, authenticated using (true);
 
-drop policy if exists "members insert own logs" on public.member_standards_log;
-create policy "members insert own logs"
-  on public.member_standards_log for insert
+-- Authenticated users insert/delete only their OWN registration.
+drop policy if exists "users insert own reg" on public.race_registrations;
+create policy "users insert own reg"
+  on public.race_registrations for insert
   to authenticated with check (auth.uid() = profile_id);
 
-drop policy if exists "members update own unverified logs" on public.member_standards_log;
-create policy "members update own unverified logs"
-  on public.member_standards_log for update
-  to authenticated using (auth.uid() = profile_id and is_verified_by_admin = false);
-
-drop policy if exists "members delete own unverified logs" on public.member_standards_log;
-create policy "members delete own unverified logs"
-  on public.member_standards_log for delete
-  to authenticated using (auth.uid() = profile_id and is_verified_by_admin = false);
-
--- Admins read & verify everything.
-drop policy if exists "admins read all logs" on public.member_standards_log;
-create policy "admins read all logs"
-  on public.member_standards_log for select
-  to authenticated using (public.is_admin());
-
-drop policy if exists "admins update any log" on public.member_standards_log;
-create policy "admins update any log"
-  on public.member_standards_log for update
-  to authenticated using (public.is_admin());
-
-drop policy if exists "admins delete any log" on public.member_standards_log;
-create policy "admins delete any log"
-  on public.member_standards_log for delete
-  to authenticated using (public.is_admin());
+drop policy if exists "users delete own reg" on public.race_registrations;
+create policy "users delete own reg"
+  on public.race_registrations for delete
+  to authenticated using (auth.uid() = profile_id);
 
 -- ============================================================
--- After running this:
--- 1. Populate standards_lookup by exporting from lib/standards/lookup.js
---    (or running a one-off seed script — let me know if you want one).
--- 2. Set your own profile's gender + date_of_birth via SQL or a profile-edit
---    UI:  update public.profiles set gender = 'Male', date_of_birth = '1990-05-10'
---        where id = auth.uid();
+-- Storage bucket for GPX files (run in Supabase Storage UI):
+--   1. Create bucket: race-gpx (public: NO)
+--   2. Add policy: admins can insert/update/delete; everyone can select.
+--
+-- Or, to do it via SQL:
 -- ============================================================
+-- insert into storage.buckets (id, name, public) values ('race-gpx', 'race-gpx', false)
+--   on conflict (id) do nothing;
+--
+-- drop policy if exists "race-gpx admins write" on storage.objects;
+-- create policy "race-gpx admins write"
+--   on storage.objects for all to authenticated
+--   using (bucket_id = 'race-gpx' and public.is_admin())
+--   with check (bucket_id = 'race-gpx' and public.is_admin());
+--
+-- drop policy if exists "race-gpx readable" on storage.objects;
+-- create policy "race-gpx readable"
+--   on storage.objects for select to anon, authenticated
+--   using (bucket_id = 'race-gpx');

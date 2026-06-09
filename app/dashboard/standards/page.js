@@ -6,7 +6,7 @@ import { COLORS } from "@/lib/data";
 import {
   StandardsBanner, TierGrid, TargetMatrix, SubmissionForm,
 } from "@/components/standards/StandardsWidgets";
-import { assignCategory, evaluateScheme } from "@/lib/standards/engine";
+import { assignCategory, evaluateScheme, getTierTargets, highestTierFor, TIER_COLORS } from "@/lib/standards/engine";
 import { STANDARDS_LOOKUP } from "@/lib/standards/lookup";
 
 const CURRENT_SEASON = new Date().getFullYear();
@@ -123,7 +123,8 @@ export default function StandardsPage() {
                     {l.is_leicestershire_region && " · Leics/Rutland"}
                   </span>
                 </div>
-                <div style={{ display: "flex", gap: 6 }}>
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <TierBadge seconds={l.achieved_time_seconds} distance={l.distance} category={category} />
                   <Pill on={!l.is_virtual} text="LRRL eligible" />
                   <Pill on={true} text="Wreake eligible" />
                 </div>
@@ -239,6 +240,47 @@ function Pill({ on, text }) {
       }}
     >
       {on ? "✓" : "—"} {text}
+    </span>
+  );
+}
+
+function TierBadge({ seconds, distance, category }) {
+  if (!category) return null;
+  const targets = getTierTargets(STANDARDS_LOOKUP, category, distance);
+  const tier = highestTierFor(seconds, targets);
+  if (!tier) {
+    return (
+      <span
+        style={{
+          padding: "3px 8px",
+          borderRadius: 12,
+          fontSize: 10,
+          fontWeight: 700,
+          background: COLORS.mist,
+          color: "#6b7280",
+          whiteSpace: "nowrap",
+        }}
+      >
+        No tier
+      </span>
+    );
+  }
+  const dark = tier === "Tungsten" || tier === "Pewter";
+  return (
+    <span
+      style={{
+        padding: "3px 10px",
+        borderRadius: 12,
+        fontSize: 10,
+        fontWeight: 800,
+        letterSpacing: 0.5,
+        background: TIER_COLORS[tier],
+        color: dark ? "#fff" : COLORS.ink,
+        whiteSpace: "nowrap",
+        boxShadow: `0 0 0 1.5px ${TIER_COLORS[tier]}`,
+      }}
+    >
+      🏅 {tier}
     </span>
   );
 }

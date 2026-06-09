@@ -10,7 +10,7 @@ import { COLORS } from "@/lib/data";
 const TABS = [
   { href: "/dashboard", label: "The Club Area" },
   { href: "/dashboard/standards", label: "Standards" },
-  { href: "/dashboard/races", label: "Upcoming Races" },
+  { href: "/dashboard/races", label: "Race Hub" },
   { href: "/dashboard/events", label: "Club Events" },
 ];
 

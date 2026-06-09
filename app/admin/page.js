@@ -100,7 +100,7 @@ export default function AdminPage() {
         Manage member roles and offboard users.
       </p>
 
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 24, display: "flex", gap: 10, flexWrap: "wrap" }}>
         <a
           href="/admin/claims"
           style={{
@@ -115,6 +115,21 @@ export default function AdminPage() {
           }}
         >
           Standards Claims Review →
+        </a>
+        <a
+          href="/admin/races"
+          style={{
+            display: "inline-block",
+            background: COLORS.ink,
+            color: "#fff",
+            padding: "10px 18px",
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 700,
+            textDecoration: "none",
+          }}
+        >
+          Manage Races →
         </a>
       </div>
 

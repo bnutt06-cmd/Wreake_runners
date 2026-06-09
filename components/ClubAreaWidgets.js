@@ -267,7 +267,10 @@ export function CalendarWidget() {
         <button onClick={() => shiftMonth(1)} style={miniBtnStyle}>›</button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, fontSize: 11 }}>
+      <div
+        style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, fontSize: 11 }}
+        onMouseLeave={() => setHovered(null)}
+      >
         {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
           <div key={i} style={{ textAlign: "center", opacity: 0.5, fontWeight: 700, padding: 4 }}>
             {d}
@@ -283,8 +286,7 @@ export function CalendarWidget() {
             <div
               key={i}
               onClick={() => hasEvents && setSelected({ date: ds, events })}
-              onMouseEnter={(e) => hasEvents && setHovered({ ds, events })}
-              onMouseLeave={() => setHovered(null)}
+              onMouseEnter={() => hasEvents && setHovered({ ds, events })}
               style={{
                 aspectRatio: "1",
                 display: "grid",
@@ -308,24 +310,32 @@ export function CalendarWidget() {
         })}
       </div>
 
-      {/* Tooltip on hover */}
-      {hovered && hovered.events.length > 0 && (
-        <div
-          style={{
-            marginTop: 12, padding: 10, background: COLORS.ink, color: "#fff",
-            borderRadius: 8, fontSize: 12,
-          }}
-        >
-          <strong style={{ display: "block", marginBottom: 4 }}>
-            {fmtDate(hovered.ds)}
-          </strong>
-          {hovered.events.map((e, i) => (
-            <div key={i} style={{ opacity: 0.9 }}>
-              {e.time}: {e.title}
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Tooltip on hover — always rendered with fixed height so the page
+          doesn't reflow on enter/leave. pointer-events disabled so the
+          tooltip itself can't trigger more hover events. */}
+      <div
+        style={{
+          marginTop: 12, padding: 10,
+          background: hovered && hovered.events.length > 0 ? COLORS.ink : "transparent",
+          color: "#fff", borderRadius: 8, fontSize: 12, minHeight: 60,
+          opacity: hovered && hovered.events.length > 0 ? 1 : 0,
+          transition: "opacity .15s, background .15s",
+          pointerEvents: "none",
+        }}
+      >
+        {hovered && hovered.events.length > 0 && (
+          <>
+            <strong style={{ display: "block", marginBottom: 4 }}>
+              {fmtDate(hovered.ds)}
+            </strong>
+            {hovered.events.map((e, i) => (
+              <div key={i} style={{ opacity: 0.9 }}>
+                {e.time}: {e.title}
+              </div>
+            ))}
+          </>
+        )}
+      </div>
 
       <p style={{ marginTop: 12, fontSize: 11, opacity: 0.55, textAlign: "center" }}>
         Tap a highlighted day for details
