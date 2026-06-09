@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { COLORS, fmtDate } from "@/lib/data";
-import { countdownLabel, MOCK_CLUB_NIGHTS } from "@/lib/mockData";
+import { countdownLabel } from "@/lib/mockData";
 
 // ============================================================
 // Pinned post — critical club alert at top of feed
@@ -215,7 +215,7 @@ export function NextRacesWidget({ races }) {
 // Club nights mini calendar — month view, highlights event days
 // Hover for tooltip, click for modal
 // ============================================================
-export function CalendarWidget() {
+export function CalendarWidget({ events = [] }) {
   const [cursor, setCursor] = useState(() => {
     const d = new Date();
     return { year: d.getFullYear(), month: d.getMonth() }; // 0-indexed month
@@ -223,15 +223,26 @@ export function CalendarWidget() {
   const [hovered, setHovered] = useState(null); // { dateStr, x, y }
   const [selected, setSelected] = useState(null);
 
-  // Index events by YYYY-MM-DD for quick lookup
+  // Index events by YYYY-MM-DD for quick lookup. Events come in with
+  // event_timestamp (full timestamp) — derive the date string + time label.
   const eventsByDate = useMemo(() => {
     const map = {};
-    MOCK_CLUB_NIGHTS.forEach((e) => {
-      map[e.date] = map[e.date] || [];
-      map[e.date].push(e);
+    events.forEach((e) => {
+      const ts = e.event_timestamp || e.date;
+      if (!ts) return;
+      const dt = new Date(ts);
+      if (isNaN(dt)) return;
+      const dateStr = dt.toISOString().slice(0, 10);
+      const time = dt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+      map[dateStr] = map[dateStr] || [];
+      map[dateStr].push({
+        title: e.title,
+        type: e.event_type || e.type || "Event",
+        time,
+      });
     });
     return map;
-  }, []);
+  }, [events]);
 
   const monthName = new Date(cursor.year, cursor.month, 1).toLocaleDateString("en-GB", {
     month: "long", year: "numeric",
