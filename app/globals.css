@@ -31,3 +31,64 @@ a { color: inherit; text-decoration: none; }
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: none; }
 }
+
+/* ---- Nav links + buttons: hover shades and transitions ---- */
+.wr-navbtn {
+  background: none;
+  border: none;
+  padding: 8px 14px;
+  font-size: 15;
+  color: var(--ink);
+  border-radius: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+  transition: background .18s ease, color .18s ease;
+}
+.wr-navbtn:hover { background: var(--mist); }
+.wr-navbtn-active { background: var(--mist); font-weight: 700; }
+
+.wr-logo { transition: opacity .18s ease; }
+.wr-logo:hover { opacity: 0.85; }
+
+.wr-cta { transition: transform .15s ease, box-shadow .18s ease, opacity .18s ease; }
+.wr-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(30,42,110,.22); }
+.wr-cta:active { transform: translateY(0); }
+
+/* ---- Dropdown items ---- */
+.wr-dropitem {
+  display: block;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  border-radius: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s ease, color .15s ease, padding-left .15s ease;
+}
+.wr-dropitem:hover {
+  background: var(--mist);
+  color: var(--ink);
+  padding-left: 18px;
+}
+.wr-dropitem-active { background: var(--mist); color: var(--ink); font-weight: 700; }
+
+@keyframes wrDropdown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---- Sub-nav strip pills (About section) ---- */
+.wr-subnav-item {
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  border-radius: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s ease, color .15s ease;
+}
+.wr-subnav-item:hover { background: var(--mist); color: var(--ink); }
+.wr-subnav-item-active { color: var(--ink); font-weight: 700; background: var(--mist); }
