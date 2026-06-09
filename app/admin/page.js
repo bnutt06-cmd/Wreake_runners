@@ -6,6 +6,17 @@ import { useStore } from "@/lib/store";
 import { styles } from "@/lib/styles";
 import { COLORS, ROLES, ALL_ROLES, fullName, fmtDate } from "@/lib/data";
 
+const BTN_STYLE = {
+  display: "inline-block",
+  background: "#1E2A6E",
+  color: "#fff",
+  padding: "10px 18px",
+  borderRadius: 8,
+  fontSize: 13,
+  fontWeight: 700,
+  textDecoration: "none",
+};
+
 export default function AdminPage() {
   const router = useRouter();
   const {
@@ -17,7 +28,6 @@ export default function AdminPage() {
   const [flash, setFlash] = useState("");
   const [forbidden, setForbidden] = useState(false);
 
-  // Strict route guard.
   useEffect(() => {
     if (!loading) {
       if (!loggedIn) router.replace("/login");
@@ -25,7 +35,6 @@ export default function AdminPage() {
     }
   }, [loading, loggedIn, isAdmin, router]);
 
-  // Load member directory once Admin status is confirmed.
   useEffect(() => {
     (async () => {
       if (isAdmin) {
@@ -35,15 +44,15 @@ export default function AdminPage() {
     })();
   }, [isAdmin, listAllProfiles]);
 
-  if (loading) return <main style={styles.section}><p>Loading…</p></main>;
+  if (loading) return <main style={styles.section}><p>Loading...</p></main>;
   if (!loggedIn) return null;
 
   if (forbidden) {
     return (
       <main style={{ ...styles.section, maxWidth: 540, textAlign: "center" }}>
-        <h2 style={styles.h2}>403 — Forbidden</h2>
+        <h2 style={styles.h2}>403 Forbidden</h2>
         <p style={{ opacity: 0.7, marginTop: 12, marginBottom: 24 }}>
-          You don't have permission to access the admin area.
+          You do not have permission to access the admin area.
         </p>
         <button style={styles.cta} onClick={() => router.push("/dashboard")}>
           Back to Dashboard
@@ -68,28 +77,37 @@ export default function AdminPage() {
       setFlash("Role updated.");
       setTimeout(() => setFlash(""), 3000);
     } else {
-      setFlash(`Error: ${error}`);
+      setFlash("Error: " + error);
     }
   }
 
   async function onDelete(userId, name) {
-    if (!confirm(`Remove ${name}'s profile? This cannot be undone.\n\n(Note: to fully delete their login account, also remove them in Supabase → Authentication → Users.)`)) return;
+    if (!confirm("Remove " + name + "'s profile? This cannot be undone.")) return;
     const { ok, error } = await removeProfile(userId);
     if (ok) {
       setMembers((ms) => ms.filter((m) => m.id !== userId));
       setFlash("Profile removed.");
       setTimeout(() => setFlash(""), 3000);
     } else {
-      setFlash(`Error: ${error}`);
+      setFlash("Error: " + error);
     }
   }
 
   const tableHeader = {
-    textAlign: "left", padding: "12px 14px", borderBottom: `2px solid ${COLORS.mist}`,
-    fontSize: 12, fontWeight: 700, letterSpacing: 1, color: COLORS.ink, textTransform: "uppercase",
+    textAlign: "left",
+    padding: "12px 14px",
+    borderBottom: "2px solid " + COLORS.mist,
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: 1,
+    color: COLORS.ink,
+    textTransform: "uppercase",
   };
   const tableCell = {
-    padding: "14px", borderBottom: `1px solid ${COLORS.mist}`, fontSize: 14, verticalAlign: "middle",
+    padding: "14px",
+    borderBottom: "1px solid " + COLORS.mist,
+    fontSize: 14,
+    verticalAlign: "middle",
   };
 
   return (
@@ -101,48 +119,20 @@ export default function AdminPage() {
       </p>
 
       <div style={{ marginBottom: 24, display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <a
-          href="/admin/claims"
-          style={{
-            display: "inline-block",
-            background: COLORS.ink,
-            color: "#fff",
-            padding: "10px 18px",
-            borderRadius: 8,
-            fontSize: 13,
-            fontWeight: 700,
-            textDecoration: "none",
-          }}
-        >
-          Standards Claims Review →
-        </a>
-        <a
-          href="/admin/races"
-          style={{
-            display: "inline-block",
-            background: COLORS.ink,
-            color: "#fff",
-            padding: "10px 18px",
-            borderRadius: 8,
-            fontSize: 13,
-            fontWeight: 700,
-            textDecoration: "none",
-          }}
-        >
-          Manage Races →
-        </a>
+        <a href="/admin/claims" style={BTN_STYLE}>Standards Claims Review</a>
+        <a href="/admin/races" style={BTN_STYLE}>Manage Races</a>
       </div>
 
-      {flash && <div style={{ ...styles.flash, marginBottom: 16 }}>{flash}</div>}
+      {flash ? <div style={{ ...styles.flash, marginBottom: 16 }}>{flash}</div> : null}
 
       <input
         style={{ ...styles.input, width: "100%", maxWidth: 400, marginBottom: 20 }}
-        placeholder="Search by name or role…"
+        placeholder="Search by name or role..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
 
-      <div style={{ background: "#fff", borderRadius: 16, border: `1px solid ${COLORS.mist}`, overflow: "auto" }}>
+      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid " + COLORS.mist, overflow: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
           <thead>
             <tr>
@@ -158,7 +148,7 @@ export default function AdminPage() {
                 <td style={tableCell}>
                   <strong>{fullName(m)}</strong>
                   <div style={{ fontSize: 12, opacity: 0.5, marginTop: 2 }}>
-                    {m.id.slice(0, 8)}…
+                    {m.id.slice(0, 8)}
                   </div>
                 </td>
                 <td style={tableCell}>
@@ -166,8 +156,11 @@ export default function AdminPage() {
                     value={m.role || ROLES.MEMBER}
                     onChange={(e) => onRoleChange(m.id, e.target.value)}
                     style={{
-                      padding: "6px 10px", borderRadius: 8, border: `1.5px solid ${COLORS.mist}`,
-                      fontSize: 14, background: "#fff",
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      border: "1.5px solid " + COLORS.mist,
+                      fontSize: 14,
+                      background: "#fff",
                     }}
                   >
                     {ALL_ROLES.map((r) => (
@@ -180,9 +173,13 @@ export default function AdminPage() {
                   <button
                     onClick={() => onDelete(m.id, fullName(m))}
                     style={{
-                      background: "transparent", color: "#C0392B",
-                      border: "1.5px solid #C0392B", padding: "6px 14px",
-                      borderRadius: 8, fontSize: 13, fontWeight: 700,
+                      background: "transparent",
+                      color: "#C0392B",
+                      border: "1.5px solid #C0392B",
+                      padding: "6px 14px",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      fontWeight: 700,
                     }}
                   >
                     Remove
@@ -190,24 +187,28 @@ export default function AdminPage() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {filtered.length === 0 ? (
               <tr>
                 <td colSpan={4} style={{ ...tableCell, textAlign: "center", opacity: 0.6 }}>
                   No members match that search.
                 </td>
               </tr>
-            )}
+            ) : null}
           </tbody>
         </table>
       </div>
 
       <div style={{
-        marginTop: 24, padding: 16, background: COLORS.mist, borderRadius: 12,
-        fontSize: 13, opacity: 0.8,
+        marginTop: 24,
+        padding: 16,
+        background: COLORS.mist,
+        borderRadius: 12,
+        fontSize: 13,
+        opacity: 0.8,
       }}>
-        <strong>Note on user offboarding:</strong> "Remove" deletes the member's profile
-        row. To fully delete the user's login account, also remove them in
-        Supabase → Authentication → Users.
+        <strong>Note on user offboarding:</strong> Remove deletes the member profile
+        row. To fully delete the login account, also remove them in
+        Supabase Authentication Users.
       </div>
     </main>
   );

@@ -3,18 +3,20 @@
 // components/race/RaceDetailModal.js
 // =================================================================
 // Modal that opens from the races list. Pulls together:
-//   - Header: name, date, type, countdown
+//   - Header: name, date, type, countdown (+ Edit button for admins)
 //   - Description and course notes
 //   - Stats row: distance / elevation
 //   - Leaflet map (lazy-loaded, no SSR)
 //   - Elevation profile
 //   - Weather forecast
-//   - I'm Running toggle + roster (existing)
+//   - I'm Running toggle + roster (passed in)
 // =================================================================
 
 import { useMemo } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { COLORS, fmtDate } from "@/lib/data";
+import { useStore } from "@/lib/store";
 import { countdownLabel } from "@/lib/mockData";
 import { RACE_DETAILS } from "@/lib/race/mockData";
 import { fmtDistance, fmtElevation } from "@/lib/race/gpx";
@@ -42,6 +44,9 @@ const RouteMap = dynamic(() => import("./RouteMap"), {
 });
 
 export default function RaceDetailModal({ race, onClose, rsvpControls }) {
+  const router = useRouter();
+  const { isAdmin } = useStore();
+
   // Merge the lightweight list-view race with its detailed extras.
   const detail = useMemo(() => {
     if (!race) return null;
@@ -51,11 +56,9 @@ export default function RaceDetailModal({ race, onClose, rsvpControls }) {
     };
   }, [race]);
 
-  if (!race || !detail) return null;
-
   // Build a profile array for the elevation chart from the route's elevations.
   const elevationProfile = useMemo(() => {
-    if (!detail.route || detail.route.length < 2) return null;
+    if (!detail?.route || detail.route.length < 2) return null;
     const totalKm = (detail.distance_m || 0) / 1000;
     return detail.route.map((p, i) => ({
       km: (i / (detail.route.length - 1)) * totalKm,
@@ -64,7 +67,7 @@ export default function RaceDetailModal({ race, onClose, rsvpControls }) {
   }, [detail]);
 
   const bounds = useMemo(() => {
-    if (!detail.route) return null;
+    if (!detail?.route) return null;
     let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
     for (const p of detail.route) {
       if (p.lat < minLat) minLat = p.lat;
@@ -74,6 +77,8 @@ export default function RaceDetailModal({ race, onClose, rsvpControls }) {
     }
     return { minLat, maxLat, minLon, maxLon };
   }, [detail]);
+
+  if (!race || !detail) return null;
 
   return (
     <div
@@ -114,24 +119,47 @@ export default function RaceDetailModal({ race, onClose, rsvpControls }) {
             borderBottom: `1px solid ${COLORS.mist}`,
           }}
         >
-          <button
-            onClick={onClose}
-            style={{
-              position: "absolute",
-              top: 18,
-              right: 18,
-              background: COLORS.mist,
-              border: "none",
-              width: 36,
-              height: 36,
-              borderRadius: "50%",
-              fontSize: 16,
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            ✕
-          </button>
+          <div style={{ position: "absolute", top: 18, right: 18, display: "flex", gap: 8 }}>
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  onClose();
+                  router.push(`/admin/races?edit=${race.id}`);
+                }}
+                style={{
+                  background: COLORS.ink,
+                  color: "#fff",
+                  border: "none",
+                  padding: "0 14px",
+                  height: 36,
+                  borderRadius: 18,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                ✎ Edit
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              style={{
+                background: COLORS.mist,
+                border: "none",
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                fontSize: 16,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              ✕
+            </button>
+          </div>
           <p
             style={{
               margin: 0,
@@ -150,7 +178,7 @@ export default function RaceDetailModal({ race, onClose, rsvpControls }) {
               fontFamily: "'Fraunces', serif",
               fontSize: 28,
               fontWeight: 700,
-              paddingRight: 48,
+              paddingRight: isAdmin ? 130 : 48,
             }}
           >
             {race.name}
@@ -187,7 +215,7 @@ export default function RaceDetailModal({ race, onClose, rsvpControls }) {
             <StatBox label="Elevation gain" value={detail.elevation_gain_m != null ? fmtElevation(detail.elevation_gain_m) : "—"} />
             <StatBox label="Elevation loss" value={detail.elevation_loss_m != null ? fmtElevation(detail.elevation_loss_m) : "—"} />
             {race.external_signup_url && (
-              <a
+              
                 href={race.external_signup_url}
                 target="_blank"
                 rel="noopener noreferrer"
