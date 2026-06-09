@@ -32,8 +32,11 @@ export default function Nav() {
   return (
     <header style={styles.nav}>
       <Link href="/" className="wr-logo" style={styles.logo}>
-        <span style={styles.logoMark}>WR</span>
-        <span style={styles.logoText}>WREAKE RUNNERS</span>
+        <img
+          src="/wreake-runners.png"
+          alt="Wreake Runners"
+          style={{ height: 40, width: "auto", display: "block" }}
+        />
       </Link>
       <nav style={styles.navLinks}>
         <NavLink href="/" active={pathname === "/"}>Home</NavLink>
