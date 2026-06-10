@@ -38,7 +38,7 @@ export default function ContentPage({ kicker, title, intro, subnav, children }) 
         style={{
           background: "linear-gradient(135deg, " + COLORS.ink + " 0%, #1d3a8c 55%, " + COLORS.sky + " 110%)",
           color: "#fff",
-          padding: "64px 40px 56px",
+          padding: "clamp(40px, 8vw, 64px) clamp(20px, 5vw, 40px) clamp(36px, 7vw, 56px)",
         }}
       >
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -60,7 +60,7 @@ export default function ContentPage({ kicker, title, intro, subnav, children }) 
 
       {/* Optional sub-navigation strip */}
       {subnav ? (
-        <div style={{ borderBottom: "1px solid " + COLORS.mist, background: "#fff", position: "sticky", top: 92, zIndex: 40 }}>
+        <div className="wr-subnav-strip" style={{ borderBottom: "1px solid " + COLORS.mist, background: "#fff", position: "sticky", zIndex: 40 }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "10px 32px", display: "flex", gap: 4, flexWrap: "wrap" }}>
             {subnav.map(([href, label]) => {
               const active = pathname === href;
@@ -79,7 +79,7 @@ export default function ContentPage({ kicker, title, intro, subnav, children }) 
       ) : null}
 
       {/* Content body */}
-      <div style={{ maxWidth: 820, margin: "0 auto", padding: "48px 40px 80px" }}>
+      <div style={{ maxWidth: 820, margin: "0 auto", padding: "clamp(32px, 6vw, 48px) clamp(20px, 5vw, 40px) 80px" }}>
         {children}
       </div>
     </main>

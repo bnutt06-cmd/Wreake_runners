@@ -47,7 +47,7 @@ export default function DashboardLayout({ children }) {
             backgroundSize: "40px 40px",
           }}
         />
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 32px 0", position: "relative" }}>
+        <div className="wr-clubhouse-pad" style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 32px 0", position: "relative" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
             <div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,.14)", padding: "5px 12px", borderRadius: 999, fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>
@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }) {
       </div>
 
       {/* Content area */}
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 32px 64px" }}>
+      <div className="wr-clubhouse-pad" style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 32px 64px" }}>
         {children}
       </div>
     </main>

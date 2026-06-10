@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
@@ -12,12 +12,31 @@ export default function Nav() {
   const pathname = usePathname();
   const router = useRouter();
   const { loggedIn, isAdmin, profile, logout } = useStore();
+
+  // Desktop dropdown state
   const [aboutOpen, setAboutOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const aboutTimer = useRef(null);
   const userTimer = useRef(null);
 
+  // Mobile menu state
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
+
   const onAboutSection = pathname === "/about" || pathname.startsWith("/about/");
+
+  // Close the mobile menu whenever the route changes.
+  useEffect(() => {
+    setMobileOpen(false);
+    setMobileAboutOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when the mobile menu is open.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
 
   function openAbout() {
     if (aboutTimer.current) { clearTimeout(aboutTimer.current); aboutTimer.current = null; }
@@ -36,25 +55,28 @@ export default function Nav() {
     userTimer.current = setTimeout(() => setUserOpen(false), 220);
   }
 
-  // Build display name + initials from the profile.
   const firstName = profile?.first_name || "";
   const lastName = profile?.last_name || "";
   const displayName = (firstName + " " + lastName).trim() || "Member";
   const initials = ((firstName[0] || "") + (lastName[0] || "")).toUpperCase() || "WR";
 
+  function doLogout() {
+    setUserOpen(false);
+    setMobileOpen(false);
+    logout();
+    router.push("/");
+  }
+
   return (
     <header style={styles.nav}>
       <Link href="/" className="wr-logo" style={styles.logo}>
-        <img
-          src="/wreake-runners.png"
-          alt="Wreake Runners"
-          style={{ height: 56, width: "auto", display: "block" }}
-        />
+        <img src="/wreake-runners.png" alt="Wreake Runners" className="wr-logo-img" />
       </Link>
-      <nav style={styles.navLinks}>
+
+      {/* ---- DESKTOP NAV ---- */}
+      <nav className="wr-desktop-nav" style={styles.navLinks}>
         <NavLink href="/" active={pathname === "/"}>Home</NavLink>
 
-        {/* About Us dropdown */}
         <div style={{ position: "relative" }} onMouseEnter={openAbout} onMouseLeave={closeAboutSoon}>
           <div
             className={"wr-navbtn" + (onAboutSection ? " wr-navbtn-active" : "")}
@@ -74,20 +96,9 @@ export default function Nav() {
 
           {aboutOpen ? (
             <div style={{ position: "absolute", top: "100%", left: 0, paddingTop: 8, zIndex: 60 }}>
-              <div
-                style={{
-                  background: "#fff", border: "1px solid " + COLORS.mist, borderRadius: 12,
-                  boxShadow: "0 12px 32px rgba(30,42,110,.16)", padding: 8, minWidth: 250,
-                  animation: "wrDropdown .16s ease",
-                }}
-              >
+              <div style={{ background: "#fff", border: "1px solid " + COLORS.mist, borderRadius: 12, boxShadow: "0 12px 32px rgba(30,42,110,.16)", padding: 8, minWidth: 250, animation: "wrDropdown .16s ease" }}>
                 {ABOUT_NAV.map(([href, label]) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setAboutOpen(false)}
-                    className={"wr-dropitem" + (pathname === href ? " wr-dropitem-active" : "")}
-                  >
+                  <Link key={href} href={href} onClick={() => setAboutOpen(false)} className={"wr-dropitem" + (pathname === href ? " wr-dropitem-active" : "")}>
                     {label}
                   </Link>
                 ))}
@@ -101,12 +112,8 @@ export default function Nav() {
         <NavLink href="/races" active={pathname === "/races"}>Races &amp; Events</NavLink>
 
         {loggedIn ? (
-          /* ---- Logged-in: avatar chip + dropdown ---- */
           <div style={{ position: "relative" }} onMouseEnter={openUser} onMouseLeave={closeUserSoon}>
-            <button
-              className="wr-userchip"
-              onClick={() => setUserOpen((o) => !o)}
-            >
+            <button className="wr-userchip" onClick={() => setUserOpen((o) => !o)}>
               <span className="wr-avatar">{initials}</span>
               <span className="wr-username">{firstName || "Member"}</span>
               <span style={{ fontSize: 10, opacity: 0.7 }}>{userOpen ? "\u25B2" : "\u25BC"}</span>
@@ -114,53 +121,86 @@ export default function Nav() {
 
             {userOpen ? (
               <div style={{ position: "absolute", top: "100%", right: 0, paddingTop: 8, zIndex: 60 }}>
-                <div
-                  style={{
-                    background: "#fff", border: "1px solid " + COLORS.mist, borderRadius: 12,
-                    boxShadow: "0 12px 32px rgba(30,42,110,.16)", padding: 8, minWidth: 220,
-                    animation: "wrDropdown .16s ease",
-                  }}
-                >
-                  {/* Header showing who's logged in */}
+                <div style={{ background: "#fff", border: "1px solid " + COLORS.mist, borderRadius: 12, boxShadow: "0 12px 32px rgba(30,42,110,.16)", padding: 8, minWidth: 220, animation: "wrDropdown .16s ease" }}>
                   <div style={{ padding: "8px 14px 10px", borderBottom: "1px solid " + COLORS.mist, marginBottom: 6 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: COLORS.teal, textTransform: "uppercase" }}>
-                      Club House
-                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: COLORS.teal, textTransform: "uppercase" }}>Club House</div>
                     <div style={{ fontSize: 15, fontWeight: 700, marginTop: 2 }}>{displayName}</div>
                   </div>
-
-                  <Link href="/dashboard" onClick={() => setUserOpen(false)} className="wr-dropitem">
-                    Club House
-                  </Link>
-                  <Link href="/dashboard/profile" onClick={() => setUserOpen(false)} className="wr-dropitem">
-                    Edit profile
-                  </Link>
-                  {isAdmin ? (
-                    <Link href="/admin" onClick={() => setUserOpen(false)} className="wr-dropitem">
-                      Admin
-                    </Link>
-                  ) : null}
-                  <button
-                    onClick={() => { setUserOpen(false); logout(); router.push("/"); }}
-                    className="wr-dropitem"
-                    style={{ width: "100%", textAlign: "left", background: "none", border: "none", color: "#C0392B", fontWeight: 600 }}
-                  >
-                    Log out
-                  </button>
+                  <Link href="/dashboard" onClick={() => setUserOpen(false)} className="wr-dropitem">Club House</Link>
+                  <Link href="/dashboard/profile" onClick={() => setUserOpen(false)} className="wr-dropitem">Edit profile</Link>
+                  {isAdmin ? <Link href="/admin" onClick={() => setUserOpen(false)} className="wr-dropitem">Admin</Link> : null}
+                  <button onClick={doLogout} className="wr-dropitem" style={{ width: "100%", textAlign: "left", background: "none", border: "none", color: "#C0392B", fontWeight: 600 }}>Log out</button>
                 </div>
               </div>
             ) : null}
           </div>
         ) : (
-          /* ---- Logged-out: prominent invitation button ---- */
-          <button
-            className="wr-login-cta"
-            onClick={() => router.push("/login")}
-          >
-            Member Login
-          </button>
+          <button className="wr-login-cta" onClick={() => router.push("/login")}>Member Login</button>
         )}
       </nav>
+
+      {/* ---- MOBILE: hamburger button ---- */}
+      <button
+        className="wr-burger"
+        aria-label="Open menu"
+        onClick={() => setMobileOpen((o) => !o)}
+      >
+        <span style={{ transform: mobileOpen ? "translateY(7px) rotate(45deg)" : "none" }} />
+        <span style={{ opacity: mobileOpen ? 0 : 1 }} />
+        <span style={{ transform: mobileOpen ? "translateY(-7px) rotate(-45deg)" : "none" }} />
+      </button>
+
+      {/* ---- MOBILE: slide-down panel ---- */}
+      {mobileOpen ? (
+        <div className="wr-mobile-panel">
+          {loggedIn ? (
+            <div className="wr-mobile-userhead">
+              <span className="wr-avatar" style={{ width: 38, height: 38, fontSize: 14 }}>{initials}</span>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: COLORS.teal, textTransform: "uppercase" }}>Club House</div>
+                <div style={{ fontSize: 16, fontWeight: 700 }}>{displayName}</div>
+              </div>
+            </div>
+          ) : null}
+
+          <Link href="/" className="wr-mobile-link">Home</Link>
+
+          {/* About Us with expandable sub-items */}
+          <button
+            className="wr-mobile-link wr-mobile-expand"
+            onClick={() => setMobileAboutOpen((o) => !o)}
+          >
+            About Us
+            <span style={{ fontSize: 12, opacity: 0.6 }}>{mobileAboutOpen ? "\u25B2" : "\u25BC"}</span>
+          </button>
+          {mobileAboutOpen ? (
+            <div className="wr-mobile-sub">
+              {ABOUT_NAV.map(([href, label]) => (
+                <Link key={href} href={href} className="wr-mobile-sublink">{label}</Link>
+              ))}
+            </div>
+          ) : null}
+
+          <Link href="/beginners" className="wr-mobile-link">Beginners</Link>
+          <Link href="/news" className="wr-mobile-link">News</Link>
+          <Link href="/races" className="wr-mobile-link">Races &amp; Events</Link>
+
+          <div className="wr-mobile-divider" />
+
+          {loggedIn ? (
+            <>
+              <Link href="/dashboard" className="wr-mobile-link">Club House</Link>
+              <Link href="/dashboard/profile" className="wr-mobile-link">Edit profile</Link>
+              {isAdmin ? <Link href="/admin" className="wr-mobile-link">Admin</Link> : null}
+              <button onClick={doLogout} className="wr-mobile-link" style={{ color: "#C0392B", textAlign: "left", width: "100%", background: "none", border: "none" }}>Log out</button>
+            </>
+          ) : (
+            <button className="wr-login-cta" style={{ width: "100%", marginTop: 8 }} onClick={() => { setMobileOpen(false); router.push("/login"); }}>
+              Member Login
+            </button>
+          )}
+        </div>
+      ) : null}
     </header>
   );
 }
