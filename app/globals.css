@@ -192,6 +192,11 @@ a { color: inherit; text-decoration: none; }
    ============================================================ */
 
 /* Hamburger button — hidden on desktop */
+.wr-desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .wr-burger {
   display: none;
   flex-direction: column;
