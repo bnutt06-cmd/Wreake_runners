@@ -318,3 +318,20 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 600px) {
   .wr-clubhouse-pad { padding-left: 20px !important; padding-right: 20px !important; }
 }
+
+/* ---- Horizontal-only tab scrolling with hidden scrollbar ---- */
+.wr-clubtabs-row {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* old Edge/IE */
+}
+.wr-clubtabs-row::-webkit-scrollbar { display: none; }  /* Chrome/Safari */
+
+/* Same treatment for the About sub-nav strip if it ever overflows */
+.wr-subnav-strip > div {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.wr-subnav-strip > div::-webkit-scrollbar { display: none; }

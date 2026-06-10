@@ -67,7 +67,7 @@ export default function DashboardLayout({ children }) {
           </div>
 
           {/* Tabs sit inside the banner */}
-          <nav style={{ display: "flex", gap: 4, marginTop: 28, overflowX: "auto" }}>
+          <nav className="wr-clubtabs-row" style={{ display: "flex", gap: 4, marginTop: 28 }}>
             {TABS.map((t) => {
               const active = pathname === t.href;
               return (
