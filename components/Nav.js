@@ -68,13 +68,14 @@ export default function Nav() {
   }
 
   return (
+    <>
     <header style={styles.nav}>
       <Link href="/" className="wr-logo" style={styles.logo}>
         <img src="/wreake-runners.png" alt="Wreake Runners" className="wr-logo-img" />
       </Link>
 
       {/* ---- DESKTOP NAV ---- */}
-      <nav className="wr-desktop-nav" style={styles.navLinks}>
+      <nav className="wr-desktop-nav">
         <NavLink href="/" active={pathname === "/"}>Home</NavLink>
 
         <div style={{ position: "relative" }} onMouseEnter={openAbout} onMouseLeave={closeAboutSoon}>
@@ -149,8 +150,11 @@ export default function Nav() {
         <span style={{ opacity: mobileOpen ? 0 : 1 }} />
         <span style={{ transform: mobileOpen ? "translateY(-7px) rotate(-45deg)" : "none" }} />
       </button>
+    </header>
 
-      {/* ---- MOBILE: slide-down panel ---- */}
+      {/* ---- MOBILE: slide-down panel (rendered OUTSIDE the header so it
+           escapes the header's backdrop-filter stacking context, which was
+           causing the panel to render behind page content) ---- */}
       {mobileOpen ? (
         <div className="wr-mobile-panel">
           {loggedIn ? (
@@ -201,7 +205,7 @@ export default function Nav() {
           )}
         </div>
       ) : null}
-    </header>
+    </>
   );
 }
 
