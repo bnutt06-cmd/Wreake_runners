@@ -23,68 +23,71 @@ export default function DashboardLayout({ children }) {
     if (!loading && !loggedIn) router.replace("/login");
   }, [loading, loggedIn, router]);
 
-  if (loading) return <main style={styles.section}><p>Loading…</p></main>;
+  if (loading) return <main style={styles.section}><p>Loading...</p></main>;
   if (!loggedIn) return null;
 
-  const tabBar = {
-    display: "flex",
-    gap: 4,
-    borderBottom: `2px solid ${COLORS.mist}`,
-    marginBottom: 32,
-    overflowX: "auto",
-  };
-  const tabLink = (active) => ({
-    padding: "12px 20px",
-    fontSize: 15,
-    fontWeight: 600,
-    color: active ? COLORS.ink : "#6b7280",
-    borderBottom: `3px solid ${active ? COLORS.teal : "transparent"}`,
-    marginBottom: -2,
-    whiteSpace: "nowrap",
-    textDecoration: "none",
-    transition: "color .15s",
-  });
+  const firstName = profile?.first_name || "";
 
   return (
-    <main style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 32px 64px" }}>
-      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <p style={styles.kickerDark}>WELCOME BACK</p>
-          <h2 style={{ ...styles.h2, marginTop: 6 }}>
-            {profile?.first_name ? `Hi, ${profile.first_name}` : "The Club Area"}
-          </h2>
-          <p style={{ opacity: 0.7, marginTop: 8, fontSize: 14 }}>
-            Signed in as <strong>{role}</strong>.
-            {isAdmin && " You have admin privileges."}
-          </p>
-        </div>
-        <Link
-          href="/dashboard/profile"
+    <main>
+      {/* ---- Club House banner: distinct members-area identity ---- */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, " + COLORS.ink + " 0%, #1d3a8c 60%, " + COLORS.teal + " 130%)",
+          color: "#fff",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* subtle dot texture */}
+        <div
           style={{
-            padding: "8px 14px",
-            background: "#fff",
-            color: COLORS.ink,
-            border: `1.5px solid ${COLORS.mist}`,
-            borderRadius: 8,
-            fontSize: 13,
-            fontWeight: 700,
-            textDecoration: "none",
-            whiteSpace: "nowrap",
+            position: "absolute", inset: 0, opacity: 0.06,
+            backgroundImage: "radial-gradient(circle at 20% 30%, #fff 1px, transparent 1px), radial-gradient(circle at 70% 60%, #fff 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
           }}
-        >
-          Edit profile
-        </Link>
+        />
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 32px 0", position: "relative" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
+            <div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,.14)", padding: "5px 12px", borderRadius: 999, fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: COLORS.cyan, display: "inline-block" }} />
+                The Club House
+              </div>
+              <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 800, margin: "14px 0 0" }}>
+                {firstName ? "Welcome back, " + firstName : "Welcome to the Club House"}
+              </h1>
+              <p style={{ opacity: 0.85, margin: "8px 0 0", fontSize: 14 }}>
+                Signed in as <strong>{role}</strong>.{isAdmin ? " You have admin privileges." : ""}
+              </p>
+            </div>
+            <Link href="/dashboard/profile" className="wr-clubhouse-editbtn">
+              Edit profile
+            </Link>
+          </div>
+
+          {/* Tabs sit inside the banner */}
+          <nav style={{ display: "flex", gap: 4, marginTop: 28, overflowX: "auto" }}>
+            {TABS.map((t) => {
+              const active = pathname === t.href;
+              return (
+                <Link
+                  key={t.href}
+                  href={t.href}
+                  className={"wr-clubtab" + (active ? " wr-clubtab-active" : "")}
+                >
+                  {t.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
       </div>
 
-      <nav style={tabBar}>
-        {TABS.map((t) => (
-          <Link key={t.href} href={t.href} style={tabLink(pathname === t.href)}>
-            {t.label}
-          </Link>
-        ))}
-      </nav>
-
-      {children}
+      {/* Content area */}
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 32px 64px" }}>
+        {children}
+      </div>
     </main>
   );
 }

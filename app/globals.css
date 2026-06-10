@@ -92,3 +92,97 @@ a { color: inherit; text-decoration: none; }
 }
 .wr-subnav-item:hover { background: var(--mist); color: var(--ink); }
 .wr-subnav-item-active { color: var(--ink); font-weight: 700; background: var(--mist); }
+
+/* ---- Logged-in user chip ---- */
+.wr-userchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: #fff;
+  border: 1.5px solid var(--mist);
+  border-radius: 999px;
+  padding: 5px 12px 5px 5px;
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.wr-userchip:hover {
+  border-color: var(--teal);
+  box-shadow: 0 4px 14px rgba(30,42,110,.12);
+}
+.wr-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--teal), var(--sky));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  letter-spacing: 0.5px;
+}
+.wr-username {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ---- Prominent 'Member Login' invitation (logged out) ---- */
+.wr-login-cta {
+  background: linear-gradient(135deg, var(--teal), var(--sky));
+  color: #fff;
+  border: none;
+  padding: 11px 22px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(21,151,184,.3);
+  transition: transform .15s ease, box-shadow .18s ease;
+}
+.wr-login-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(21,151,184,.4);
+}
+.wr-login-cta:active { transform: translateY(0); }
+
+/* ---- Club House banner (members area) ---- */
+.wr-clubhouse-banner {
+  background: linear-gradient(135deg, var(--ink) 0%, #1d3a8c 100%);
+  color: #fff;
+  border-radius: 0;
+}
+
+/* ---- Club House tabs (on dark banner) ---- */
+.wr-clubtab {
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255,255,255,.7);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color .15s ease, border-color .15s ease;
+}
+.wr-clubtab:hover { color: #fff; }
+.wr-clubtab-active {
+  color: #fff;
+  font-weight: 700;
+  border-bottom-color: var(--cyan);
+}
+
+/* ---- Club House edit-profile button (on dark banner) ---- */
+.wr-clubhouse-editbtn {
+  padding: 9px 16px;
+  background: rgba(255,255,255,.14);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .18s ease;
+}
+.wr-clubhouse-editbtn:hover { background: rgba(255,255,255,.24); }
