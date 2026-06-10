@@ -60,7 +60,7 @@ export default function ContentPage({ kicker, title, intro, subnav, children }) 
 
       {/* Optional sub-navigation strip */}
       {subnav ? (
-        <div style={{ borderBottom: "1px solid " + COLORS.mist, background: "#fff", position: "sticky", top: 73, zIndex: 40 }}>
+        <div style={{ borderBottom: "1px solid " + COLORS.mist, background: "#fff", position: "sticky", top: 92, zIndex: 40 }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "10px 32px", display: "flex", gap: 4, flexWrap: "wrap" }}>
             {subnav.map(([href, label]) => {
               const active = pathname === href;

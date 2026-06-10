@@ -35,7 +35,7 @@ export default function Nav() {
         <img
           src="/wreake-runners.png"
           alt="Wreake Runners"
-          style={{ height: 40, width: "auto", display: "block" }}
+          style={{ height: 56, width: "auto", display: "block" }}
         />
       </Link>
       <nav style={styles.navLinks}>
@@ -107,6 +107,7 @@ export default function Nav() {
           ) : null}
         </div>
 
+        <NavLink href="/beginners" active={pathname === "/beginners"}>Beginners</NavLink>
         <NavLink href="/news" active={pathname === "/news"}>News</NavLink>
         <NavLink href="/races" active={pathname === "/races"}>Races &amp; Events</NavLink>
 
