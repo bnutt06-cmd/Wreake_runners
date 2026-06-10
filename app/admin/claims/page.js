@@ -15,7 +15,7 @@ const CURRENT_SEASON = new Date().getFullYear();
 export default function ClaimsPanel() {
   const router = useRouter();
   const {
-    loggedIn, loading, isAdmin,
+    loggedIn, authReady, isAdmin,
     standardsLookup, listAllStandardsLogs, verifyStandardLog,
   } = useStore();
 
@@ -26,10 +26,10 @@ export default function ClaimsPanel() {
   const [flash, setFlash] = useState("");
 
   useEffect(() => {
-    if (!loading && (!loggedIn || !isAdmin)) {
+    if (authReady && (!loggedIn || !isAdmin)) {
       router.replace(loggedIn ? "/dashboard" : "/login");
     }
-  }, [loading, loggedIn, isAdmin, router]);
+  }, [authReady, loggedIn, isAdmin, router]);
 
   useEffect(() => {
     (async () => {
@@ -83,7 +83,7 @@ export default function ClaimsPanel() {
     return out;
   }, [allLogs, standardsLookup]);
 
-  if (loading) return <p style={{ padding: 40 }}>Loading...</p>;
+  if (!authReady) return <p style={{ padding: 40 }}>Loading...</p>;
   if (!loggedIn || !isAdmin) return null;
 
   const filtered = claims

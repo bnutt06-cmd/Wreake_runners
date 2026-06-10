@@ -10,7 +10,7 @@ import { styles } from "@/lib/styles";
 export default function AdminPinPage() {
   const router = useRouter();
   const {
-    loggedIn, loading, isAdmin,
+    loggedIn, authReady, isAdmin,
     pinnedPost, setPinnedPost, clearPinnedPost,
   } = useStore();
 
@@ -20,12 +20,12 @@ export default function AdminPinPage() {
   const [flash, setFlash] = useState("");
 
   useEffect(() => {
-    if (!loading && (!loggedIn || !isAdmin)) {
+    if (authReady && (!loggedIn || !isAdmin)) {
       router.replace(loggedIn ? "/dashboard" : "/login");
     }
-  }, [loading, loggedIn, isAdmin, router]);
+  }, [authReady, loggedIn, isAdmin, router]);
 
-  if (loading) return <p style={{ padding: 40 }}>Loading...</p>;
+  if (!authReady) return <p style={{ padding: 40 }}>Loading...</p>;
   if (!loggedIn || !isAdmin) return null;
 
   async function handleSave(e) {

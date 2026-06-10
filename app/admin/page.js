@@ -20,7 +20,7 @@ const ADMIN_BTN = {
 export default function AdminPage() {
   const router = useRouter();
   const {
-    loggedIn, loading, isAdmin, listAllProfiles, changeUserRole, removeProfile,
+    loggedIn, authReady, isAdmin, listAllProfiles, changeUserRole, removeProfile,
   } = useStore();
 
   const [members, setMembers] = useState([]);
@@ -28,13 +28,17 @@ export default function AdminPage() {
   const [flash, setFlash] = useState("");
   const [forbidden, setForbidden] = useState(false);
 
-  // Strict route guard.
+  // Strict route guard — only decide once auth identity is definitively
+  // resolved (authReady), not merely when the initial load flag clears.
+  // This prevents a real admin being shown the "forbidden" screen during
+  // the window where the profile hasn't loaded yet.
   useEffect(() => {
-    if (!loading) {
+    if (authReady) {
       if (!loggedIn) router.replace("/login");
       else if (!isAdmin) setForbidden(true);
+      else setForbidden(false);
     }
-  }, [loading, loggedIn, isAdmin, router]);
+  }, [authReady, loggedIn, isAdmin, router]);
 
   // Load member directory once Admin status is confirmed.
   useEffect(() => {
@@ -47,7 +51,7 @@ export default function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
-  if (loading) return <main style={styles.section}><p>Loading…</p></main>;
+  if (!authReady) return <main style={styles.section}><p>Loading...</p></main>;
   if (!loggedIn) return null;
 
   if (forbidden) {
