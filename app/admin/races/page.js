@@ -28,7 +28,7 @@ export default function AdminRacesPage() {
 function AdminRacesInner() {
   const router = useRouter();
   const {
-    loggedIn, authReady, isAdmin,
+    loggedIn, accessResolved, isAdmin,
     races, createRace, updateRace, deleteRace, uploadRaceGpx,
   } = useStore();
   const searchParams = useSearchParams();
@@ -39,10 +39,10 @@ function AdminRacesInner() {
   const [flash, setFlash] = useState("");
 
   useEffect(() => {
-    if (authReady && (!loggedIn || !isAdmin)) {
+    if (accessResolved && (!loggedIn || !isAdmin)) {
       router.replace(loggedIn ? "/dashboard" : "/login");
     }
-  }, [authReady, loggedIn, isAdmin, router]);
+  }, [accessResolved, loggedIn, isAdmin, router]);
 
   useEffect(() => {
     if (editId && !editing) {
@@ -52,7 +52,7 @@ function AdminRacesInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId]);
 
-  if (!authReady) return <p style={{ padding: 40 }}>Loading...</p>;
+  if (!accessResolved) return <p style={{ padding: 40 }}>Loading...</p>;
   if (!loggedIn || !isAdmin) return null;
 
   function startNew() {

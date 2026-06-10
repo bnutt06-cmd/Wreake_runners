@@ -17,13 +17,13 @@ const TABS = [
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { loggedIn, authReady, profile, role, isAdmin } = useStore();
+  const { loggedIn, accessResolved, profile, role, isAdmin } = useStore();
 
   useEffect(() => {
-    if (authReady && !loggedIn) router.replace("/login");
-  }, [authReady, loggedIn, router]);
+    if (accessResolved && !loggedIn) router.replace("/login");
+  }, [accessResolved, loggedIn, router]);
 
-  if (!authReady) return <main style={styles.section}><p>Loading...</p></main>;
+  if (!accessResolved) return <main style={styles.section}><p>Loading...</p></main>;
   if (!loggedIn) return null;
 
   const firstName = profile?.first_name || "";

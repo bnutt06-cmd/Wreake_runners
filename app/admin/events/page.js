@@ -20,7 +20,7 @@ export default function AdminEventsPage() {
 function AdminEventsInner() {
   const router = useRouter();
   const {
-    loggedIn, authReady, isAdmin,
+    loggedIn, accessResolved, isAdmin,
     clubEvents, createEvent, updateEvent, deleteEvent,
   } = useStore();
 
@@ -29,12 +29,12 @@ function AdminEventsInner() {
   const [flash, setFlash] = useState("");
 
   useEffect(() => {
-    if (authReady && (!loggedIn || !isAdmin)) {
+    if (accessResolved && (!loggedIn || !isAdmin)) {
       router.replace(loggedIn ? "/dashboard" : "/login");
     }
-  }, [authReady, loggedIn, isAdmin, router]);
+  }, [accessResolved, loggedIn, isAdmin, router]);
 
-  if (!authReady) return <p style={{ padding: 40 }}>Loading...</p>;
+  if (!accessResolved) return <p style={{ padding: 40 }}>Loading...</p>;
   if (!loggedIn || !isAdmin) return null;
 
   // Sort: upcoming first (ascending), then past (descending)
