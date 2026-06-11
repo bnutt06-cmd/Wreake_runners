@@ -17,13 +17,23 @@ const TABS = [
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { loggedIn, accessResolved, profile, role, isAdmin } = useStore();
+  const { loggedIn, loading, profile, role, isAdmin } = useStore();
 
+  // Guard on the stable flags seeded from server hydration. For a logged-in
+  // user, loggedIn is true and loading is false from the first frame, so the
+  // guard never reacts to the transient profile-null window (which was what
+  // briefly dropped accessResolved and bounced the user to /login).
   useEffect(() => {
-    if (accessResolved && !loggedIn) router.replace("/login");
-  }, [accessResolved, loggedIn, router]);
+    if (!loading && !loggedIn) router.replace("/login");
+  }, [loading, loggedIn, router]);
 
-  if (!accessResolved) return <main style={styles.section}><p>Loading...</p></main>;
+  if (loading && !loggedIn) {
+    return (
+      <main style={styles.section}>
+        <p style={{ textAlign: "center", opacity: 0.6, paddingTop: 40 }}>Loading Club House...</p>
+      </main>
+    );
+  }
   if (!loggedIn) return null;
 
   const firstName = profile?.first_name || "";
