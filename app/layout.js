@@ -9,6 +9,13 @@ export const metadata = {
   description: "A friendly, inclusive running club based in Syston, Leicester. Running better together since 1981.",
 };
 
+// Reading cookies (via the server Supabase client below) opts this layout
+// out of static generation. Declaring it dynamic makes that explicit and
+// prevents a build/runtime conflict on any otherwise-static route. The
+// whole site is already effectively dynamic (client store + Supabase on
+// every page), so there's no meaningful cost here.
+export const dynamic = "force-dynamic";
+
 // Root layout is a Server Component. It reads the session from cookies on the
 // server (the source of truth) and hands the user down to the client store as
 // initialUser. This means the client NEVER starts from a null/logged-out
