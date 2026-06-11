@@ -2,17 +2,26 @@ import "./globals.css";
 import { StoreProvider } from "@/lib/store";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
   title: "Wreake Runners — Running Club, Syston, Leicester",
   description: "A friendly, inclusive running club based in Syston, Leicester. Running better together since 1981.",
 };
 
-export default function RootLayout({ children }) {
+// Root layout is a Server Component. It reads the session from cookies on the
+// server (the source of truth) and hands the user down to the client store as
+// initialUser. This means the client NEVER starts from a null/logged-out
+// guess — it's hydrated with the server-validated identity, eliminating the
+// "logged out flash" / "Member chip" on navigation.
+export default async function RootLayout({ children }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <html lang="en-GB">
       <body>
-        <StoreProvider>
+        <StoreProvider initialUser={user}>
           <Nav />
           {children}
           <Footer />
