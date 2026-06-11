@@ -25,10 +25,17 @@ export default async function RootLayout({ children }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Keying the provider on the user id makes React cleanly tear down and
+  // rebuild the store whenever identity changes (login/logout/user switch).
+  // This gives correct fresh state on identity shifts without fighting the
+  // React lifecycle with sync effects — and avoids any stale-state-on-
+  // navigation trap.
+  const storeKey = user?.id || "public-anonymous";
+
   return (
     <html lang="en-GB">
       <body>
-        <StoreProvider initialUser={user}>
+        <StoreProvider key={storeKey} initialUser={user}>
           <Nav />
           {children}
           <Footer />
