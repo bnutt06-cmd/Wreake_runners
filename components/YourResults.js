@@ -40,15 +40,31 @@ export default function YourResults({ mode = "full" }) {
             {history.length} {history.length === 1 ? "finish" : "finishes"}
           </span>
         </div>
-        <div style={{ display: "grid", gap: 10 }}>
+        <div style={{ display: "grid", gap: 8 }}>
           {recent.map((h, i) => (
-            <div key={h.raceId + i} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
+            <div
+              key={h.raceId + i}
+              style={{
+                background: COLORS.paper,
+                borderRadius: 10,
+                padding: "12px 14px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{h.raceName}</div>
-                <div style={{ fontSize: 12, color: "#9ca3af" }}>{h.dateLabel} &middot; {h.distance}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.ink, lineHeight: 1.3 }}>{h.raceName}</div>
+                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{h.distance} &middot; pos {h.row.pos}</div>
               </div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.teal, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
-                {h.row.chipTime || h.row.gunTime}
+              <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.teal, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
+                  {h.row.chipTime || h.row.gunTime}
+                </div>
+                {h.row.standard ? (
+                  <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 3, fontWeight: 600 }}>{h.row.standard}</div>
+                ) : null}
               </div>
             </div>
           ))}

@@ -112,6 +112,12 @@ export default function Nav() {
         <NavLink href="/news" active={pathname === "/news"}>News</NavLink>
         <NavLink href="/races" active={pathname === "/races"}>Races &amp; Events</NavLink>
         <NavLink href="/join" active={pathname === "/join"}>Join Us</NavLink>
+        <Link
+          href="/wreake45"
+          className={"wr-w45-navpill" + (pathname === "/wreake45" ? " wr-w45-navpill-active" : "")}
+        >
+          Wreake 45
+        </Link>
 
         {loggedIn ? (
           <Link
@@ -200,6 +206,7 @@ export default function Nav() {
           <Link href="/news" className="wr-mobile-link">News</Link>
           <Link href="/races" className="wr-mobile-link">Races &amp; Events</Link>
           <Link href="/join" className="wr-mobile-link">Join Us</Link>
+          <Link href="/wreake45" className="wr-mobile-link" style={{ color: COLORS.teal, fontWeight: 800 }}>Wreake 45 &#127881;</Link>
 
           <div className="wr-mobile-divider" />
 

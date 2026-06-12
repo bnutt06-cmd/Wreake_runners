@@ -393,3 +393,29 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 8px 24px rgba(0,0,0,.24);
 }
 .wr-hero-pill:active { transform: translateY(0); }
+
+/* ---- Wreake 45 anniversary nav pill ---- */
+.wr-w45-navpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+  text-decoration: none;
+  background: linear-gradient(135deg, #cdebfb, #9fd6f5);
+  border: 1.5px solid var(--sky);
+  transition: transform .15s ease, box-shadow .18s ease;
+  white-space: nowrap;
+}
+.wr-w45-navpill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(37,137,186,.32);
+}
+.wr-w45-navpill-active {
+  background: linear-gradient(135deg, var(--sky), var(--teal));
+  color: #fff;
+  border-color: var(--teal);
+}
