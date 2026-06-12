@@ -113,6 +113,16 @@ export default function Nav() {
         <NavLink href="/races" active={pathname === "/races"}>Races &amp; Events</NavLink>
 
         {loggedIn ? (
+          <Link
+            href="/dashboard"
+            className={"wr-clubhouse-navpill" + (pathname.startsWith("/dashboard") ? " wr-clubhouse-navpill-active" : "")}
+          >
+            <span className="wr-clubhouse-navpill-dot" />
+            Club House
+          </Link>
+        ) : null}
+
+        {loggedIn ? (
           <div style={{ position: "relative" }} onMouseEnter={openUser} onMouseLeave={closeUserSoon}>
             <button className="wr-userchip" onClick={() => setUserOpen((o) => !o)}>
               <span className="wr-avatar">{initials}</span>

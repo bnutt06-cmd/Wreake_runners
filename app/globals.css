@@ -335,3 +335,36 @@ a { color: inherit; text-decoration: none; }
   -ms-overflow-style: none;
 }
 .wr-subnav-strip > div::-webkit-scrollbar { display: none; }
+
+/* ---- Prominent Club House nav pill (logged in) ---- */
+.wr-clubhouse-navpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  background: linear-gradient(135deg, var(--teal), var(--sky));
+  box-shadow: 0 3px 12px rgba(21,151,184,.3);
+  transition: transform .15s ease, box-shadow .18s ease;
+  white-space: nowrap;
+}
+.wr-clubhouse-navpill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(21,151,184,.42);
+}
+.wr-clubhouse-navpill-active {
+  background: linear-gradient(135deg, var(--ink), #1d3a8c);
+  box-shadow: 0 3px 12px rgba(30,42,110,.35);
+}
+.wr-clubhouse-navpill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cyan);
+  display: inline-block;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.25);
+}

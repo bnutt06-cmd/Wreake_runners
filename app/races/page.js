@@ -67,11 +67,18 @@ export default function RacesPage() {
     <main style={styles.section}>
       <p style={styles.kickerDark}>FIXTURES</p>
       <h2 style={styles.h2}>Races &amp; Events</h2>
-      <div style={{ display: "grid", gap: 20, marginTop: 32 }}>
-        {races.map((r) => (
-          <RaceRow key={r.id} r={r} />
-        ))}
-      </div>
+      {races.length === 0 ? (
+        <div style={{ marginTop: 32, padding: "48px 24px", textAlign: "center", background: "#fff", border: "1px solid #DDE6F0", borderRadius: 16, color: "#6b7280" }}>
+          <p style={{ fontSize: 18, fontWeight: 600, margin: "0 0 6px", color: "#1E2A6E" }}>No races listed right now</p>
+          <p style={{ margin: 0, fontSize: 15 }}>Check back soon, or log in to the Club House for the full members&rsquo; race calendar.</p>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: 20, marginTop: 32 }}>
+          {races.map((r) => (
+            <RaceRow key={r.id} r={r} />
+          ))}
+        </div>
+      )}
     </main>
   );
 }

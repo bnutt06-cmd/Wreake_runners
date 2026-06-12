@@ -49,6 +49,25 @@ export default function DashboardLayout({ children }) {
           overflow: "hidden",
         }}
       >
+        {/* Faded team photo, weighted to the right so it sits behind/around
+            the text without hurting legibility. */}
+        <div
+          style={{
+            position: "absolute", inset: 0,
+            backgroundImage: "url('/clubhouse-team.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center 30%",
+            opacity: 0.18,
+            mixBlendMode: "luminosity",
+          }}
+        />
+        {/* Gradient scrim over the photo to keep the left-side text crisp. */}
+        <div
+          style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(100deg, " + COLORS.ink + "F0 0%, " + COLORS.ink + "B0 45%, transparent 100%)",
+          }}
+        />
         {/* subtle dot texture */}
         <div
           style={{
