@@ -115,6 +115,7 @@ export default function AdminPage() {
       </p>
 
       <div style={{ marginBottom: 24, display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <a href="/admin/members/new" style={{ ...ADMIN_BTN, background: COLORS.teal }}>+ Add New Member</a>
         <a href="/admin/claims" style={ADMIN_BTN}>Standards Claims Review</a>
         <a href="/admin/races" style={ADMIN_BTN}>Manage Races</a>
         <a href="/admin/events" style={ADMIN_BTN}>Manage Events</a>
