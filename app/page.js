@@ -23,6 +23,24 @@ export default function HomePage() {
   return (
     <main>
       <section style={styles.hero}>
+        {/* Faded team photo background */}
+        <div
+          style={{
+            position: "absolute", inset: 0,
+            backgroundImage: "url('/home-hero-team.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center 35%",
+            opacity: 0.2,
+            mixBlendMode: "luminosity",
+          }}
+        />
+        {/* Gradient scrim to keep text legible over the photo */}
+        <div
+          style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(120deg, " + "#1E2A6EF0" + " 0%, " + "#1E2A6EAA" + " 50%, transparent 110%)",
+          }}
+        />
         <div style={styles.heroGrain} />
         <div style={styles.heroInner}>
           <p style={styles.kicker}>EST. 1981 · SYSTON, LEICESTER</p>
@@ -36,11 +54,14 @@ export default function HomePage() {
             with races and socials.
           </p>
           <div style={styles.heroBtns}>
-            <button style={styles.cta} onClick={() => router.push("/races")}>
-              See upcoming races →
+            <button className="wr-hero-pill" onClick={() => router.push("/news")}>
+              Latest News
             </button>
-            <button style={styles.ghostBtn} onClick={() => router.push("/news")}>
-              Latest news
+            <a className="wr-hero-pill" href="mailto:info@wreakerunners.co.uk">
+              Get In Touch
+            </a>
+            <button className="wr-hero-pill" onClick={() => router.push("/join")}>
+              Join Us
             </button>
           </div>
           <div style={styles.statRow}>
