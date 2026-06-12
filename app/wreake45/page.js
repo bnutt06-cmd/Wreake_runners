@@ -17,9 +17,7 @@ export default function Wreake45Page() {
         }}
       >
         <div style={{ position: "relative", maxWidth: 760, margin: "0 auto" }}>
-          <div style={{ display: "inline-block", background: "#fff", borderRadius: 16, padding: "16px 26px", marginBottom: 26, boxShadow: "0 6px 24px rgba(0,0,0,.12)" }}>
-            <img src="/wreake45-logo.png" alt="Wreake 45" style={{ height: 60, width: "auto", display: "block" }} />
-          </div>
+          <img src="/wreake45-logo.png" alt="Wreake 45" style={{ height: 76, width: "auto", display: "block", margin: "0 auto 26px" }} />
           <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#fff", opacity: 0.85, margin: "0 0 12px" }}>
             Our 45th Anniversary
           </p>

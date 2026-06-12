@@ -35,31 +35,31 @@ export default function ClubAreaHub() {
       className="club-area-grid"
     >
       <section style={{ minWidth: 0 }}>
-        {/* Wreake 45 anniversary callout */}
+        {/* Wreake 45 anniversary banner - slim strip */}
         <a
           href="/wreake45"
           style={{
-            display: "block",
+            display: "flex",
+            alignItems: "center",
+            gap: 18,
             textDecoration: "none",
-            background: "linear-gradient(135deg, " + COLORS.sky + " 0%, " + COLORS.teal + " 55%, " + COLORS.cyan + " 130%)",
-            borderRadius: 16,
-            padding: "20px 22px",
+            background: "linear-gradient(135deg, " + COLORS.sky + " 0%, " + COLORS.teal + " 60%, " + COLORS.cyan + " 130%)",
+            borderRadius: 12,
+            padding: "14px 20px",
             marginBottom: 24,
             color: "#fff",
-            position: "relative",
-            overflow: "hidden",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-            <div style={{ background: "#fff", borderRadius: 12, padding: "10px 14px", flexShrink: 0, boxShadow: "0 3px 12px rgba(0,0,0,.1)" }}>
-              <img src="/wreake45-logo.png" alt="Wreake 45" style={{ height: 34, width: "auto", display: "block" }} />
+          <img src="/wreake45-logo.png" alt="Wreake 45" style={{ height: 40, width: "auto", display: "block", flexShrink: 0 }} />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 800, color: COLORS.ink, lineHeight: 1.2 }}>
+              The Wreake 45 Day Out
             </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "#fff", opacity: 0.85 }}>Save the date</div>
-              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 800, margin: "2px 0", color: COLORS.ink }}>The Wreake 45 Day Out</div>
-              <div style={{ fontSize: 14, opacity: 0.95, fontWeight: 600 }}>Sun 30 Aug &middot; Watermead Park &middot; tap for details &rarr;</div>
+            <div style={{ fontSize: 13.5, opacity: 0.95, fontWeight: 600, marginTop: 2 }}>
+              Sun 30 Aug &middot; Watermead Park &middot; save the date
             </div>
           </div>
+          <span style={{ fontSize: 20, fontWeight: 700, flexShrink: 0, opacity: 0.9 }}>&rarr;</span>
         </a>
 
         {post ? <PinnedPost post={post} /> : null}
