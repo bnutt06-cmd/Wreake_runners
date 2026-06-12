@@ -11,6 +11,7 @@ const TABS = [
   { href: "/dashboard", label: "The Club Area" },
   { href: "/dashboard/standards", label: "Standards" },
   { href: "/dashboard/races", label: "Race Hub" },
+  { href: "/dashboard/results", label: "Results" },
   { href: "/dashboard/events", label: "Club Events" },
 ];
 
