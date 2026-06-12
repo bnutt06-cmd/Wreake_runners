@@ -8,8 +8,8 @@ export default function Wreake45Page() {
       {/* Hero */}
       <section
         style={{
-          background: "linear-gradient(135deg, " + COLORS.sky + " 0%, " + COLORS.teal + " 55%, " + COLORS.cyan + " 130%)",
-          color: "#fff",
+          background: "#C3E9FE",
+          color: COLORS.ink,
           padding: "64px 32px 56px",
           textAlign: "center",
           position: "relative",
@@ -17,14 +17,14 @@ export default function Wreake45Page() {
         }}
       >
         <div style={{ position: "relative", maxWidth: 760, margin: "0 auto" }}>
-          <img src="/wreake45-logo.png" alt="Wreake 45" style={{ height: 76, width: "auto", display: "block", margin: "0 auto 26px" }} />
-          <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#fff", opacity: 0.85, margin: "0 0 12px" }}>
+          <img src="/wreake45-logo.png" alt="Wreake 45" style={{ height: 84, width: "auto", display: "block", margin: "0 auto 26px" }} />
+          <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: COLORS.sky, margin: "0 0 12px" }}>
             Our 45th Anniversary
           </p>
           <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: "clamp(36px, 6vw, 60px)", fontWeight: 800, lineHeight: 1.05, margin: "0 0 16px", color: COLORS.ink }}>
             The Wreake 45 Day Out
           </h1>
-          <p style={{ fontSize: 19, opacity: 0.95, lineHeight: 1.5, margin: 0, fontWeight: 600 }}>
+          <p style={{ fontSize: 19, opacity: 0.85, lineHeight: 1.5, margin: 0, fontWeight: 600, color: COLORS.ink }}>
             Sunday 30th August 2026 &middot; 8am&ndash;6pm &middot; Watermead Park
           </p>
         </div>

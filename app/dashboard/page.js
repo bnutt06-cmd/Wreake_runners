@@ -35,7 +35,7 @@ export default function ClubAreaHub() {
       className="club-area-grid"
     >
       <section style={{ minWidth: 0 }}>
-        {/* Wreake 45 anniversary banner - slim strip */}
+        {/* Wreake 45 anniversary banner - matches the logo's light-blue background */}
         <a
           href="/wreake45"
           style={{
@@ -43,23 +43,23 @@ export default function ClubAreaHub() {
             alignItems: "center",
             gap: 18,
             textDecoration: "none",
-            background: "linear-gradient(135deg, " + COLORS.sky + " 0%, " + COLORS.teal + " 60%, " + COLORS.cyan + " 130%)",
+            background: "#C3E9FE",
             borderRadius: 12,
             padding: "14px 20px",
             marginBottom: 24,
-            color: "#fff",
+            color: COLORS.ink,
           }}
         >
-          <img src="/wreake45-logo.png" alt="Wreake 45" style={{ height: 40, width: "auto", display: "block", flexShrink: 0 }} />
+          <img src="/wreake45-logo.png" alt="Wreake 45" style={{ height: 44, width: "auto", display: "block", flexShrink: 0 }} />
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 800, color: COLORS.ink, lineHeight: 1.2 }}>
               The Wreake 45 Day Out
             </div>
-            <div style={{ fontSize: 13.5, opacity: 0.95, fontWeight: 600, marginTop: 2 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 600, marginTop: 2, color: COLORS.ink, opacity: 0.8 }}>
               Sun 30 Aug &middot; Watermead Park &middot; save the date
             </div>
           </div>
-          <span style={{ fontSize: 20, fontWeight: 700, flexShrink: 0, opacity: 0.9 }}>&rarr;</span>
+          <span style={{ fontSize: 20, fontWeight: 700, flexShrink: 0, color: COLORS.ink, opacity: 0.7 }}>&rarr;</span>
         </a>
 
         {post ? <PinnedPost post={post} /> : null}

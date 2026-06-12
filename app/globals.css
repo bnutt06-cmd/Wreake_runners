@@ -398,24 +398,38 @@ a { color: inherit; text-decoration: none; }
 .wr-w45-navpill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  gap: 7px;
+  padding: 8px 16px 8px 12px;
   border-radius: 999px;
   font-size: 14px;
   font-weight: 800;
   color: var(--ink);
   text-decoration: none;
-  background: linear-gradient(135deg, #cdebfb, #9fd6f5);
-  border: 1.5px solid var(--sky);
-  transition: transform .15s ease, box-shadow .18s ease;
+  background: #fff;
+  border: 2px solid var(--ink);
+  transition: transform .15s ease, box-shadow .18s ease, background .18s ease, color .18s ease;
   white-space: nowrap;
+}
+.wr-w45-navpill::before {
+  content: "45";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--cyan);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+  flex-shrink: 0;
 }
 .wr-w45-navpill:hover {
   transform: translateY(-1px);
-  box-shadow: 0 5px 16px rgba(37,137,186,.32);
+  box-shadow: 0 5px 16px rgba(30,42,110,.25);
 }
 .wr-w45-navpill-active {
-  background: linear-gradient(135deg, var(--sky), var(--teal));
+  background: var(--ink);
   color: #fff;
-  border-color: var(--teal);
+  border-color: var(--ink);
 }
