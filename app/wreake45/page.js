@@ -8,7 +8,7 @@ export default function Wreake45Page() {
       {/* Hero */}
       <section
         style={{
-          background: "linear-gradient(135deg, " + COLORS.ink + " 0%, #1d3a8c 55%, " + COLORS.sky + " 120%)",
+          background: "linear-gradient(135deg, " + COLORS.sky + " 0%, " + COLORS.teal + " 55%, " + COLORS.cyan + " 130%)",
           color: "#fff",
           padding: "64px 32px 56px",
           textAlign: "center",
@@ -17,16 +17,16 @@ export default function Wreake45Page() {
         }}
       >
         <div style={{ position: "relative", maxWidth: 760, margin: "0 auto" }}>
-          <div style={{ display: "inline-block", background: "#fff", borderRadius: 16, padding: "16px 26px", marginBottom: 26 }}>
+          <div style={{ display: "inline-block", background: "#fff", borderRadius: 16, padding: "16px 26px", marginBottom: 26, boxShadow: "0 6px 24px rgba(0,0,0,.12)" }}>
             <img src="/wreake45-logo.png" alt="Wreake 45" style={{ height: 60, width: "auto", display: "block" }} />
           </div>
-          <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: COLORS.cyan, margin: "0 0 12px" }}>
+          <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#fff", opacity: 0.85, margin: "0 0 12px" }}>
             Our 45th Anniversary
           </p>
-          <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: "clamp(36px, 6vw, 60px)", fontWeight: 800, lineHeight: 1.05, margin: "0 0 16px" }}>
+          <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: "clamp(36px, 6vw, 60px)", fontWeight: 800, lineHeight: 1.05, margin: "0 0 16px", color: COLORS.ink }}>
             The Wreake 45 Day Out
           </h1>
-          <p style={{ fontSize: 19, opacity: 0.92, lineHeight: 1.5, margin: 0 }}>
+          <p style={{ fontSize: 19, opacity: 0.95, lineHeight: 1.5, margin: 0, fontWeight: 600 }}>
             Sunday 30th August 2026 &middot; 8am&ndash;6pm &middot; Watermead Park
           </p>
         </div>
