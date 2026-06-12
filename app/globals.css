@@ -49,6 +49,7 @@ a { color: inherit; text-decoration: none; }
 .wr-navbtn-active { background: var(--mist); font-weight: 700; }
 
 .wr-logo { transition: opacity .18s ease; }
+.wr-logo-img { height: 52px; width: auto; display: block; }
 .wr-logo:hover { opacity: 0.85; }
 
 .wr-cta { transition: transform .15s ease, box-shadow .18s ease, opacity .18s ease; }
