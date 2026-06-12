@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { raceSummaries } from "@/lib/results";
 import { COLORS } from "@/lib/data";
+import YourResults from "@/components/YourResults";
 
 export default function ResultsIndexPage() {
   const races = raceSummaries();
@@ -16,6 +17,9 @@ export default function ResultsIndexPage() {
         Full field results from races we've competed in &mdash; filter to Wreake runners,
         search by name, and see how everyone got on.
       </p>
+
+      {/* Personal history first */}
+      <YourResults mode="full" />
 
       {races.length === 0 ? (
         <p style={{ color: "#9ca3af" }}>No results published yet.</p>
