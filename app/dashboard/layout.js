@@ -77,22 +77,17 @@ export default function DashboardLayout({ children }) {
           }}
         />
         <div className="wr-clubhouse-pad" style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 32px 0", position: "relative" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
-            <div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,.14)", padding: "5px 12px", borderRadius: 999, fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: COLORS.cyan, display: "inline-block" }} />
-                The Club House
-              </div>
-              <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 800, margin: "14px 0 0" }}>
-                {firstName ? "Welcome back, " + firstName : "Welcome to the Club House"}
-              </h1>
-              <p style={{ opacity: 0.85, margin: "8px 0 0", fontSize: 14 }}>
-                Signed in as <strong>{role}</strong>.{isAdmin ? " You have admin privileges." : ""}
-              </p>
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,.14)", padding: "5px 12px", borderRadius: 999, fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: COLORS.cyan, display: "inline-block" }} />
+              The Club House
             </div>
-            <Link href="/dashboard/profile" className="wr-clubhouse-editbtn">
-              Edit profile
-            </Link>
+            <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 800, margin: "14px 0 0" }}>
+              {firstName ? "Welcome back, " + firstName : "Welcome to the Club House"}
+            </h1>
+            <p style={{ opacity: 0.85, margin: "8px 0 0", fontSize: 14 }}>
+              Signed in as <strong>{role}</strong>.{isAdmin ? " You have admin privileges." : ""}
+            </p>
           </div>
 
           {/* Tabs sit inside the banner */}
