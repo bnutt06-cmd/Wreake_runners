@@ -111,6 +111,7 @@ export default function Nav() {
         <NavLink href="/beginners" active={pathname === "/beginners"}>Beginners</NavLink>
         <NavLink href="/news" active={pathname === "/news"}>News</NavLink>
         <NavLink href="/races" active={pathname === "/races"}>Races &amp; Events</NavLink>
+        <NavLink href="/join" active={pathname === "/join"}>Join Us</NavLink>
 
         {loggedIn ? (
           <Link
@@ -198,6 +199,7 @@ export default function Nav() {
           <Link href="/beginners" className="wr-mobile-link">Beginners</Link>
           <Link href="/news" className="wr-mobile-link">News</Link>
           <Link href="/races" className="wr-mobile-link">Races &amp; Events</Link>
+          <Link href="/join" className="wr-mobile-link">Join Us</Link>
 
           <div className="wr-mobile-divider" />
 

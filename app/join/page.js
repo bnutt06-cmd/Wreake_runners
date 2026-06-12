@@ -122,10 +122,10 @@ export default function JoinPage() {
         reference.
       </P>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, margin: "4px 0 12px" }}>
-        <a href="#" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid " + COLORS.mist, color: COLORS.ink, padding: "11px 18px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
+        <a href="/membership-form-2026.pdf" download style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid " + COLORS.mist, color: COLORS.ink, padding: "11px 18px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
           &#8595; 2026/27 Membership Form (PDF)
         </a>
-        <a href="#" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid " + COLORS.mist, color: COLORS.ink, padding: "11px 18px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
+        <a href="/introductory-membership-form-2026.pdf" download style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid " + COLORS.mist, color: COLORS.ink, padding: "11px 18px", borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
           &#8595; 2026/27 Introductory Membership Form (PDF)
         </a>
       </div>
